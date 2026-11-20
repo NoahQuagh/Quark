@@ -1,0 +1,22 @@
+<idea-plugin>
+    <id>com.github.noahquagh.quark</id>
+    <name>Quark</name>
+    <vendor email="noah.quaghebeur@outlook.fr">NoahQuagh</vendor>
+
+    <description><![CDATA[
+        Générateur rapide de Design Patterns Java directement depuis le menu Alt + Insert.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+
+    <actions>
+        <action id="CreateDesignPatternAction"
+                class="com.github.noahquagh.quark.CreateDesignPatternAction"
+                text="Design Pattern"
+                description="Créer un patron de conception dans ce package">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewClass"/>
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
+    </actions>
+</idea-plugin>
