@@ -1,5 +1,7 @@
 package com.github.noahquagh.quark.actions;
 
+import com.github.noahquagh.quark.generator.PatternGenerator;
+import com.github.noahquagh.quark.ui.DesignPatternDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -20,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
  * @version 1.2
  */
 public class CreateDesignPatternAction extends AnAction{
+
 
     public CreateDesignPatternAction() {
         super("Design Pattern", "Générer la structure d'un patron de conception", AllIcons.Nodes.ModelClass);
@@ -45,7 +48,17 @@ public class CreateDesignPatternAction extends AnAction{
             if (pkg != null) packageName = pkg.getQualifiedName();
         }
 
-        Messages.showInfoMessage(project, "Package détecté : " + packageName, "Design Pattern");
+        DesignPatternDialog dialog = new DesignPatternDialog(project);
+        if (dialog.showAndGet()) {
+            PatternGenerator.generate(
+                    project,
+                    dir,
+                    dialog.getSelectedPattern(),
+                    dialog.getBaseName(),
+                    dialog.isPedagogical()
+            );
+        }
+
     }
 
     @Override
