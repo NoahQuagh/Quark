@@ -1,4 +1,4 @@
-package com.github.noahquagh.quark;
+package com.github.noahquagh.quark.actions;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeView;
@@ -15,6 +15,10 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @author noahq
+ * @version 1.2
+ */
 public class CreateDesignPatternAction extends AnAction{
 
     public CreateDesignPatternAction() {
