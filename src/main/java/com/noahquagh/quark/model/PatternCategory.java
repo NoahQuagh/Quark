@@ -1,4 +1,4 @@
-package com.github.noahquagh.quark.model;
+package com.noahquagh.quark.model;
 
 /**
  * @author noahq

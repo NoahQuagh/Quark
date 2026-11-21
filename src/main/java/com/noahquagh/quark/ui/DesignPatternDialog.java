@@ -1,6 +1,6 @@
-package com.github.noahquagh.quark.ui;
+package com.noahquagh.quark.ui;
 
-import com.github.noahquagh.quark.model.DesignPatternType;
+import com.noahquagh.quark.model.DesignPatternType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;

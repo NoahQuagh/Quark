@@ -1,10 +1,10 @@
-package com.github.noahquagh.quark.model;
+package com.noahquagh.quark.model;
 
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.noahquagh.quark.model.PatternCategory.*;
-import static com.github.noahquagh.quark.model.PatternRole.*;
+import static com.noahquagh.quark.model.PatternCategory.*;
+import static com.noahquagh.quark.model.PatternRole.*;
 
 /**
  * Les 23 design patterns du GoF:

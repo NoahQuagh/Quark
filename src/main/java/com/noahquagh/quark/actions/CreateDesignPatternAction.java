@@ -1,7 +1,8 @@
-package com.github.noahquagh.quark.actions;
+package com.noahquagh.quark.actions;
 
-import com.github.noahquagh.quark.generator.PatternGenerator;
-import com.github.noahquagh.quark.ui.DesignPatternDialog;
+import com.noahquagh.quark.generator.GenerationContext;
+import com.noahquagh.quark.generator.PatternGenerator;
+import com.noahquagh.quark.ui.DesignPatternDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
@@ -10,7 +11,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;

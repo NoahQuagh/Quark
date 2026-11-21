@@ -1,4 +1,4 @@
-package com.github.noahquagh.quark.model;
+package com.noahquagh.quark.model;
 
 import java.util.List;
 import java.util.stream.IntStream;
