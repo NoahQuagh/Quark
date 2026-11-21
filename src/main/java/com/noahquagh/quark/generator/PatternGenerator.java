@@ -15,12 +15,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Générateur des patrons de conception.
+ * Résout les noms de participants, délègue la construction du code aux stratégies
+ * et déclenche l'écriture dans le répertoire cible.
+ *
+ * @author noahq
+ * @version 1.2
+ */
 public class PatternGenerator {
+
     private static final Map<DesignPatternType, PatternStrategy> CUSTOM_STRATEGIES = Map.of(
             DesignPatternType.SINGLETON, new SingletonStrategy()
     );
+
     private static final PatternStrategy DEFAULT_STRATEGY = new DefaultPatternStrategy();
 
+    /**
+     * Génère et écrit physiquement les fichiers Java d'un patron de conception dans un répertoire IntelliJ.
+     *
+     * @param project     projet IntelliJ actif
+     * @param directory   répertoire cible correspondant au package sélectionné
+     * @param pattern     patron de conception à générer
+     * @param baseName    nom de base saisi par l'utilisateur
+     * @param pedagogical {@code true} pour inclure les commentaires pédagogiques
+     */
     public static void generate(Project project,
                                 PsiDirectory directory,
                                 DesignPatternType pattern,
@@ -33,7 +52,16 @@ public class PatternGenerator {
         PsiFileWriter.writeFiles(project, directory, "Générer " + pattern.displayName(), files);
     }
 
-    //todo methode Java uniquement pour test unitair JUnit
+    /**
+     * Génère en mémoire l'ensemble des fichiers sources d'un patron sans dépendance au SDK IntelliJ.
+     * Utilisable directement pour les tests unitaires JUnit.
+     *
+     * @param pattern     patron de conception à générer
+     * @param baseName    nom de base saisi par l'utilisateur
+     * @param packageName nom qualifié du package cible
+     * @param pedagogical {@code true} pour inclure les commentaires pédagogiques
+     * @return table associant chaque nom de fichier ({@code Nom.java}) à son code source
+     */
     public static Map<String, String> generateSources(DesignPatternType pattern,
                                                       String baseName,
                                                       String packageName,
@@ -53,6 +81,13 @@ public class PatternGenerator {
         return files;
     }
 
+    /**
+     * Résout et indexe les noms de classes générés pour chacun des rôles d'un patron.
+     *
+     * @param pattern  patron de conception traité
+     * @param baseName nom de base saisi par l'utilisateur
+     * @return correspondance ordonnée {@code roleId -> liste des noms de classes}
+     */
     private static Map<String, List<String>> resolveAllClassNames(DesignPatternType pattern, String baseName) {
         Map<String, List<String>> map = new LinkedHashMap<>();
         for (PatternRole role : pattern.getRoles()) {

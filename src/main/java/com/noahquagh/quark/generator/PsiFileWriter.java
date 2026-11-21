@@ -12,7 +12,23 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 
 import java.util.Map;
 
+/**
+ * Utilitaire responsable de l'écriture sécurisée des fichiers Java générés dans l'arbre PSI d'IntelliJ IDEA.
+ *
+ * @author noahq
+ * @version 1.0
+ */
 public class PsiFileWriter {
+
+    /**
+     * Crée et formate physiquement les fichiers Java dans le répertoire cible au sein d'une {@link WriteCommandAction},
+     * puis ouvre automatiquement le premier fichier créé dans l'éditeur.
+     *
+     * @param project       projet IntelliJ actif
+     * @param directory     répertoire cible dans lequel ajouter les fichiers
+     * @param commandName   intitulé de l'action affiché dans l'historique d'annulation (Ctrl + Z)
+     * @param filesToCreate table associant chaque nom de fichier à son contenu source Java
+     */
     public static void writeFiles(Project project, PsiDirectory directory, String commandName, Map<String,String> filesToCreate){
         WriteCommandAction.runWriteCommandAction(project, commandName, null, () -> {
             PsiFile firstCreated = null;

@@ -1,6 +1,5 @@
 package com.noahquagh.quark.actions;
 
-import com.noahquagh.quark.generator.GenerationContext;
 import com.noahquagh.quark.generator.PatternGenerator;
 import com.noahquagh.quark.ui.DesignPatternDialog;
 import com.intellij.icons.AllIcons;
@@ -18,16 +17,26 @@ import com.intellij.psi.PsiPackage;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * Action IntelliJ déclenchant la génération d'un patron de conception dans le package sélectionné.
+ * Accessible via le menu contextuel {@code New} ou {@code Generate} ({@code Alt + Insert}).
+ *
  * @author noahq
- * @version 1.2
+ * @version 1.3
  */
 public class CreateDesignPatternAction extends AnAction{
 
-
+    /**
+     * Initialise l'action avec son libellé, sa description et son icône native IntelliJ.
+     */
     public CreateDesignPatternAction() {
-        super("Design Pattern", "Générer la structure d'un patron de conception", AllIcons.Nodes.ModelClass);
+        super("Design Pattern", "Générer la structure d'un patron de conception", AllIcons.Nodes.Models);
     }
 
+    /**
+     * Ouvre la boîte de dialogue de configuration et lance la génération des fichiers du patron choisi.
+     *
+     * @param e événement déclencheur contenant le contexte du projet et du répertoire ciblé
+     */
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
@@ -61,11 +70,21 @@ public class CreateDesignPatternAction extends AnAction{
 
     }
 
+    /**
+     * Active et rend visible l'action uniquement lorsqu'un projet est ouvert dans l'IDE.
+     *
+     * @param e événement de mise à jour de l'interface
+     */
     @Override
     public void update(@NotNull AnActionEvent e) {
         e.getPresentation().setEnabledAndVisible(e.getProject() != null);
     }
 
+    /**
+     * Spécifie que la mise à jour de l'état de l'action s'exécute sur un thread d'arrière-plan (BGT).
+     *
+     * @return {@link ActionUpdateThread#BGT}
+     */
     @Override
     public @NotNull ActionUpdateThread getActionUpdateThread() {
         return ActionUpdateThread.BGT;

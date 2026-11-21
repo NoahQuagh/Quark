@@ -9,10 +9,25 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Stratégie de génération générique pilotée par les métadonnées des {@link PatternRole}.
+ * Gère l'héritage, les dépendances, la résolution des placeholders et l'implémentation des méthodes héritées.
+ *
+ * @author noahq
+ * @version 1.0
+ */
 public class DefaultPatternStrategy implements PatternStrategy{
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Z0-9_]+)}");
 
+    /**
+     * Construit la structure complète d'un rôle standard (Javadoc, héritage, champs et méthodes).
+     *
+     * @param role      participant du design pattern à générer
+     * @param className nom exact de la classe ou interface générée
+     * @param builder   constructeur fluide du fichier source Java
+     * @param ctx       contexte global de la génération
+     */
     @Override
     public void buildRole(PatternRole role, String className, JavaClassBuilder builder, GenerationContext ctx) {
 
@@ -61,6 +76,14 @@ public class DefaultPatternStrategy implements PatternStrategy{
         }
     }
 
+    /**
+     * Rassemble les méthodes propres au rôle ainsi que les méthodes abstraites ou d'interfaces
+     * héritées de ses parents lorsque le rôle est une classe concrète.
+     *
+     * @param role rôle dont on collecte les méthodes
+     * @param ctx  contexte global de la génération
+     * @return liste ordonnée et dédupliquée des spécifications de méthodes
+     */
     private List<MethodSpec> collectMethods(PatternRole role, GenerationContext ctx) {
         List<MethodSpec> result = new ArrayList<>();
         Set<String> seen = new LinkedHashSet<>();
@@ -98,6 +121,14 @@ public class DefaultPatternStrategy implements PatternStrategy{
         return result;
     }
 
+    /**
+     * Remplace récursivement les placeholders {@code {Name}} et {@code {ROLE_ID}} dans une signature.
+     * Si un rôle cible possède plusieurs instances (ex : Visitor), duplique la signature pour chacune.
+     *
+     * @param rawSig signature brute contenant d'éventuels placeholders
+     * @param ctx    contexte global de la génération
+     * @return liste des signatures résolues
+     */
     private List<String> resolvePlaceholders(String rawSig, GenerationContext ctx) {
         String sig = rawSig.replace("{Name}", ctx.baseName());
         Matcher matcher = PLACEHOLDER_PATTERN.matcher(sig);
@@ -114,6 +145,14 @@ public class DefaultPatternStrategy implements PatternStrategy{
         return expanded;
     }
 
+    /**
+     * Formate une méthode Java complète (signature, annotation {@code @Override} et corps par défaut).
+     *
+     * @param role        rôle propriétaire de la méthode
+     * @param method      spécification de la méthode à formater
+     * @param pedagogical {@code true} pour inclure un commentaire TODO explicatif
+     * @return code source formaté de la méthode
+     */
     private String formatMethod(PatternRole role, MethodSpec method, boolean pedagogical) {
         StringBuilder sb = new StringBuilder();
         if (method.isOverride()) {
@@ -137,6 +176,13 @@ public class DefaultPatternStrategy implements PatternStrategy{
         return sb.toString();
     }
 
+    /**
+     * Déduit une instruction {@code return} valide selon le type de retour de la signature
+     * afin que le code généré compile immédiatement.
+     *
+     * @param signature signature complète de la méthode
+     * @return instruction {@code return} adaptée, ou chaîne vide si le retour est {@code void}
+     */
     private String defaultReturnStatement(String signature) {
         String beforeParen = signature.substring(0, signature.indexOf('(')).trim();
         String[] tokens = beforeParen.split("\\s+");
@@ -150,9 +196,22 @@ public class DefaultPatternStrategy implements PatternStrategy{
         };
     }
 
+    /**
+     * Normalise une signature en supprimant les modificateurs ({@code abstract}, {@code final}, {@code static})
+     * pour détecter les doublons lors de l'héritage.
+     *
+     * @param sig signature à normaliser
+     * @return signature nettoyée
+     */
     private String normalize(String sig) {
         return sig.replaceFirst("^(abstract|final|static)\\s+", "").trim();
     }
 
+    /**
+     * Représente une méthode résolue avec son indicateur de redéfinition ({@code @Override}).
+     *
+     * @param signature  signature Java résolue
+     * @param isOverride {@code true} si l'annotation {@code @Override} doit être ajoutée
+     */
     private record MethodSpec(String signature,boolean isOverride){}
 }

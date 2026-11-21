@@ -279,37 +279,71 @@ public enum DesignPatternType {
     private final String description;
     private final List<PatternRole> roles;
 
+    /**
+     * Initialise un patron de conception du GoF avec sa catégorie, sa description et ses participants.
+     *
+     * @param category    catégorie GoF du patron ({@code CREATIONAL}, {@code STRUCTURAL}, {@code BEHAVIORAL})
+     * @param description résumé pédagogique du rôle du patron
+     * @param roles       liste ordonnée des rôles participants
+     */
     DesignPatternType(PatternCategory category, String description, PatternRole... roles) {
         this.category = category;
         this.description = description;
         this.roles = List.of(roles);
     }
 
+    /**
+     * Retourne la catégorie GoF du patron de conception.
+     *
+     * @return catégorie {@link PatternCategory} associée
+     */
     public PatternCategory getCategory() {
         return category;
     }
 
+    /**
+     * Retourne la description pédagogique de l'intention du patron.
+     *
+     * @return description textuelle
+     */
     public String getDescription() {
         return description;
     }
 
-    /** Tous les rôles (classes/interfaces) du pattern, dans l'ordre de génération conseillé. */
+    /**
+     * Retourne tous les rôles (classes/interfaces) du pattern, dans l'ordre de génération conseillé.
+     *
+     * @return liste immuable des {@link PatternRole}
+     */
     public List<PatternRole> getRoles() {
         return roles;
     }
 
+    /**
+     * Recherche un rôle participant précis par son identifiant interne.
+     *
+     * @param roleId identifiant du rôle recherché (ex : {@code "STRATEGY"})
+     * @return un {@link Optional} contenant le rôle s'il existe
+     */
     public Optional<PatternRole> getRole(String roleId) {
         return roles.stream().filter(r -> r.id().equals(roleId)).findFirst();
     }
 
-    /** Sous-package conseillé pour les fichiers générés (ex : CHAIN_OF_RESPONSIBILITY → "chainofresponsibility"). */
+    /**
+     * Retourne un nom de sous-package normalisé en minuscules pour isoler les fichiers générés
+     * (ex : {@code CHAIN_OF_RESPONSIBILITY} &rarr; {@code "chainofresponsibility"}).
+     *
+     * @return nom de sous-package valide en Java
+     */
     public String getSubPackage() {
         return name().toLowerCase().replace("_", "");
     }
 
     /**
-     * Nom lisible du pattern (ex : CHAIN_OF_RESPONSIBILITY → "Chain Of Responsibility").
-     * Utilise name() et non toString() pour éviter une récursion infinie.
+     * Formate le nom de la constante en titre lisible (ex : {@code CHAIN_OF_RESPONSIBILITY} &rarr; {@code "Chain Of Responsibility"}).
+     * Utilise {@code name()} et non {@code toString()} pour éviter une récursion infinie.
+     *
+     * @return nom formaté pour l'affichage utilisateur
      */
     public String displayName() {
         String[] words = name().toLowerCase().split("_");
@@ -324,6 +358,11 @@ public enum DesignPatternType {
         return result.toString().trim();
     }
 
+    /**
+     * Retourne le nom lisible du pattern pour l'affichage direct dans les composants Swing ({@link javax.swing.JComboBox}).
+     *
+     * @return nom formaté du patron
+     */
     @Override
     public String toString() {
         return displayName();
