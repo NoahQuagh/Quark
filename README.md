@@ -1,4 +1,4 @@
-# Quark — Générateur de Design Patterns pour IntelliJ IDEA
+# Quark : Générateur de Design Patterns pour IntelliJ IDEA v1.2
 
 **Quark** est un plugin pour **IntelliJ IDEA** permettant de générer instantanément la structure complète des **23 patrons de conception du GoF** (*Gang of Four*) directement depuis le menu contextuel (`Alt + Insert`).
 
@@ -89,4 +89,5 @@ L'archive est générée dans `build/distributions/`.
 
 ## Licence
 
-Projet développé par **Noah Quaghebeur**.
+Copyright © 2026 **Noah Quaghebeur (NoahQuagh)** — Tous droits réservés (*All Rights Reserved*).  
+Le code source de ce dépôt est rendu visible uniquement à des fins de consultation et de démonstration (portfolio). Toute copie, modification, redistribution ou utilisation commerciale sans autorisation écrite préalable de l'auteur est strictement interdite. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
