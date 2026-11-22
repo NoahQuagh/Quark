@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * Gère l'héritage, les dépendances, la résolution des placeholders et l'implémentation des méthodes héritées.
  *
  * @author noahq
- * @version 1.0
+ * @version 1.2
  */
 public class DefaultPatternStrategy implements PatternStrategy{
 
@@ -88,17 +88,11 @@ public class DefaultPatternStrategy implements PatternStrategy{
         List<MethodSpec> result = new ArrayList<>();
         Set<String> seen = new LinkedHashSet<>();
 
-        for (String raw : role.methods()) {
-            for (String sig : resolvePlaceholders(raw, ctx)) {
-                boolean isOverride = role.parentId() != null && role.kind() == ClassKind.CLASS
-                        && !sig.startsWith("static ") && !sig.startsWith("abstract ");
-                result.add(new MethodSpec(sig, isOverride));
-                seen.add(normalize(sig));
-            }
-        }
+        // récup toutes les signatures des parents
+        Set<String> parentSignatures = new HashSet<>();
+        List<String> inheritedAbstractOrInterfaceSigs = new ArrayList<>();
 
-        //heritage des methodes abs et interface pour les classes concrete
-        if (role.kind() == ClassKind.CLASS && role.parentId() != null) {
+        if (role.parentId() != null) {
             String parentId = role.parentId();
             while (parentId != null) {
                 Optional<PatternRole> parentOpt = ctx.pattern().getRole(parentId);
@@ -106,18 +100,41 @@ public class DefaultPatternStrategy implements PatternStrategy{
 
                 PatternRole parent = parentOpt.get();
                 for (String rawParentSig : parent.methods()) {
-                    if (parent.kind() == ClassKind.INTERFACE || rawParentSig.startsWith("abstract ")) {
-                        String clean = rawParentSig.replaceFirst("^abstract\\s+", "");
-                        for (String sig : resolvePlaceholders(clean, ctx)) {
-                            if (seen.add(normalize(sig))) {
-                                result.add(new MethodSpec(sig, true));
-                            }
+                    String clean = rawParentSig.replaceFirst("^abstract\\s+", "");
+                    for (String sig : resolvePlaceholders(clean, ctx)) {
+                        parentSignatures.add(normalize(sig));
+                        if (parent.kind() == ClassKind.INTERFACE || rawParentSig.startsWith("abstract ")) {
+                            inheritedAbstractOrInterfaceSigs.add(sig);
                         }
                     }
                 }
                 parentId = parent.parentId();
             }
         }
+
+        // ajoute les méthodes propres du rôle (@Override uniquement si présentes chez un parent)
+        for (String raw : role.methods()) {
+            for (String sig : resolvePlaceholders(raw, ctx)) {
+                String norm = normalize(sig);
+                boolean isOverride = role.parentId() != null
+                        && role.kind() == ClassKind.CLASS
+                        && !sig.startsWith("static ")
+                        && !sig.startsWith("abstract ")
+                        && parentSignatures.contains(norm);
+                result.add(new MethodSpec(sig, isOverride));
+                seen.add(norm);
+            }
+        }
+
+        // ajoute les méthodes abstraites/interfaces heritees non encore définies dans le rôle
+        if (role.kind() == ClassKind.CLASS) {
+            for (String sig : inheritedAbstractOrInterfaceSigs) {
+                if (seen.add(normalize(sig))) {
+                    result.add(new MethodSpec(sig, true));
+                }
+            }
+        }
+
         return result;
     }
 

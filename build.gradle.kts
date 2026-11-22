@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.NoahQuagh"
-version = "1.0-SNAPSHOT"
+version = "1.3-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -16,6 +16,10 @@ repositories {
 
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
 dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.eclipse.jdt:ecj:3.40.0")
     intellijPlatform {
         intellijIdea("2025.2.4")
         testFramework(org.jetbrains.intellij.platform.gradle.TestFrameworkType.Platform)
@@ -39,16 +43,24 @@ intellijPlatform {
     }
 }
 
-tasks {
-    // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "21"
-        targetCompatibility = "21"
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+tasks {
+    test {
+        useJUnitPlatform()
+        javaLauncher.set(
+            project.javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(21))
+            }
+        )
     }
+}
+
+
+kotlin {
+    jvmToolchain(21)
 }
