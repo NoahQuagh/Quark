@@ -1,6 +1,8 @@
 package com.noahquagh.quark.actions;
 
 import com.noahquagh.quark.generator.PatternGenerator;
+import com.noahquagh.quark.model.DesignPatternType;
+import com.noahquagh.quark.model.PatternGenerationConfig;
 import com.noahquagh.quark.ui.DesignPatternDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeView;
@@ -16,6 +18,10 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Action IntelliJ déclenchant la génération d'un patron de conception dans le package sélectionné.
  * Accessible via le menu contextuel {@code New} ou {@code Generate} ({@code Alt + Insert}).
@@ -29,7 +35,7 @@ public class CreateDesignPatternAction extends AnAction{
      * Initialise l'action avec son libellé, sa description et son icône native IntelliJ.
      */
     public CreateDesignPatternAction() {
-        super("Design Pattern", "Générer la structure d'un patron de conception", AllIcons.Nodes.Models);
+        super("Java Design Pattern", "Générer la structure Java d'un patron de conception", AllIcons.Nodes.Models);
     }
 
     /**
@@ -59,13 +65,17 @@ public class CreateDesignPatternAction extends AnAction{
 
         DesignPatternDialog dialog = new DesignPatternDialog(project);
         if (dialog.showAndGet()) {
-            PatternGenerator.generate(
-                    project,
-                    dir,
-                    dialog.getSelectedPattern(),
-                    dialog.getBaseName(),
-                    dialog.isPedagogical()
-            );
+            PatternGenerationConfig config = dialog.getConfig();
+
+            DesignPatternType pattern = config.pattern();
+            String baseName = config.baseName();
+            boolean createSubPackage = config.createSubPackage();
+            boolean pedagogical = config.pedagogical();
+            Set<String> enabledOptionals = config.enabledOptionalRoleIds();
+            Map<String, Integer> instanceCounts = config.roleInstanceCounts();
+            List<String> variants = config.variants().isEmpty() ? List.of("A", "B") : config.variants();
+
+            //todo Lancer la génération dans le package cible sélectionné dans l'arborescence
         }
 
     }
