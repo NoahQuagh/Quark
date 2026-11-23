@@ -1,12 +1,12 @@
-package com.noahquagh.quark.generator;
+package com.noahquagh.quark.jcb;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaDirectoryService;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiPackage;
-import com.noahquagh.quark.generator.strategy.DefaultPatternStrategy;
-import com.noahquagh.quark.generator.strategy.PatternStrategy;
-import com.noahquagh.quark.generator.strategy.SingletonStrategy;
+import com.noahquagh.quark.jcb.strategy.DefaultPatternStrategy;
+import com.noahquagh.quark.jcb.strategy.PatternStrategy;
+import com.noahquagh.quark.jcb.strategy.SingletonStrategy;
 import com.noahquagh.quark.model.DesignPatternType;
 import com.noahquagh.quark.model.PatternGenerationConfig;
 import com.noahquagh.quark.model.PatternRole;

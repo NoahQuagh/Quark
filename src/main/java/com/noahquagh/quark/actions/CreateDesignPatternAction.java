@@ -1,6 +1,6 @@
 package com.noahquagh.quark.actions;
 
-import com.noahquagh.quark.generator.PatternGenerator;
+import com.noahquagh.quark.jcb.PatternGenerator;
 import com.noahquagh.quark.model.DesignPatternType;
 import com.noahquagh.quark.model.PatternGenerationConfig;
 import com.noahquagh.quark.ui.DesignPatternDialog;

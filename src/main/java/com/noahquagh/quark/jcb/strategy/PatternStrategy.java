@@ -1,7 +1,7 @@
-package com.noahquagh.quark.generator.strategy;
+package com.noahquagh.quark.jcb.strategy;
 
-import com.noahquagh.quark.generator.GenerationContext;
-import com.noahquagh.quark.generator.JavaClassBuilder;
+import com.noahquagh.quark.jcb.GenerationContext;
+import com.noahquagh.quark.jcb.JavaClassBuilder;
 import com.noahquagh.quark.model.PatternRole;
 
 /**

@@ -1,4 +1,4 @@
-package com.noahquagh.quark.generator;
+package com.noahquagh.quark.jcb;
 
 import com.noahquagh.quark.model.DesignPatternType;
 import org.junit.jupiter.api.DisplayName;

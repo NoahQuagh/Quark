@@ -1,4 +1,4 @@
-package com.noahquagh.quark.generator;
+package com.noahquagh.quark.jcb;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.command.WriteCommandAction;
