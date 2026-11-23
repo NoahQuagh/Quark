@@ -8,6 +8,7 @@ import com.noahquagh.quark.generator.strategy.DefaultPatternStrategy;
 import com.noahquagh.quark.generator.strategy.PatternStrategy;
 import com.noahquagh.quark.generator.strategy.SingletonStrategy;
 import com.noahquagh.quark.model.DesignPatternType;
+import com.noahquagh.quark.model.PatternGenerationConfig;
 import com.noahquagh.quark.model.PatternRole;
 
 import java.util.ArrayList;
@@ -53,6 +54,34 @@ public class PatternGenerator {
     }
 
     /**
+     * Génère et écrit physiquement les fichiers Java d'un patron selon la configuration complète
+     * issue de la boîte de dialogue (sous-package, rôles optionnels, multiplicité et variantes).
+     *
+     * @param project
+     * @param directory
+     * @param patternConfig
+     */
+    public static void generate(Project project, PsiDirectory directory, PatternGenerationConfig patternConfig){
+        PsiDirectory targetDir = directory;
+        if (patternConfig.createSubPackage()) {
+            String subPkg = patternConfig.pattern().getSubPackage();
+            PsiDirectory existing = directory.findSubdirectory(subPkg);
+            if (existing != null) {
+                targetDir = existing;
+            } else {
+                PsiDirectory[] created = new PsiDirectory[1];
+                com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction(
+                        project, "Créer le sous-package " + subPkg, null,
+                        () -> created[0] = directory.createSubdirectory(subPkg)
+                );
+                if (created[0] != null) {
+                    targetDir = created[0];
+                }
+            }
+        }
+    }
+
+    /**
      * Génère en mémoire l'ensemble des fichiers sources d'un patron sans dépendance au SDK IntelliJ.
      * Utilisable directement pour les tests unitaires JUnit.
      *
@@ -66,8 +95,33 @@ public class PatternGenerator {
                                                       String baseName,
                                                       String packageName,
                                                       boolean pedagogical) {
-        Map<String, List<String>> roleClasses = resolveAllClassNames(pattern, baseName);
-        GenerationContext ctx = new GenerationContext(pattern, baseName, packageName, roleClasses, pedagogical);
+        java.util.Set<String> allOptionals = pattern.getRoles().stream()
+                .filter(r -> !r.required())
+                .map(PatternRole::id)
+                .collect(java.util.stream.Collectors.toSet());
+
+        PatternGenerationConfig defaultConfig = new PatternGenerationConfig(
+                pattern, baseName, false, pedagogical, allOptionals, Map.of(), List.of()
+        );
+        return generateSources(defaultConfig, packageName);
+    }
+
+    /**
+     * Génère en mémoire les sources Java selon une {@link PatternGenerationConfig} complète.
+     */
+    public static Map<String, String> generateSources(PatternGenerationConfig config, String packageName) {
+        DesignPatternType pattern = config.pattern();
+        Map<String, List<String>> roleClasses = resolveAllClassNames(config);
+        GenerationContext ctx = new GenerationContext(
+                pattern,
+                config.baseName(),
+                packageName,
+                roleClasses,
+                config.enabledOptionalRoleIds(),
+                config.roleInstanceCounts(),
+                config.variants(),
+                config.pedagogical()
+        );
         PatternStrategy strategy = CUSTOM_STRATEGIES.getOrDefault(pattern, DEFAULT_STRATEGY);
 
         Map<String, String> files = new LinkedHashMap<>();
@@ -80,6 +134,7 @@ public class PatternGenerator {
         }
         return files;
     }
+
 
     /**
      * Résout et indexe les noms de classes générés pour chacun des rôles d'un patron.
@@ -99,5 +154,44 @@ public class PatternGenerator {
             map.put(role.id(), names);
         }
         return map;
+    }
+
+    private static Map<String, List<String>> resolveAllClassNames(PatternGenerationConfig config) {
+        Map<String, List<String>> map = new LinkedHashMap<>();
+        List<String> variants = config.variants() != null ? config.variants() : List.of();
+
+        for (PatternRole role : config.pattern().getRoles()) {
+            if (!role.required() && !config.enabledOptionalRoleIds().contains(role.id())) {
+                continue;
+            }
+
+            if (role.multiple()) {
+                int spinnerCount = config.roleInstanceCounts().getOrDefault(role.id(), role.defaultInstances());
+                int effectiveCount = !variants.isEmpty() ? variants.size() : Math.max(1, spinnerCount);
+
+                List<String> names = new ArrayList<>();
+                for (int i = 1; i <= effectiveCount; i++) {
+                    names.add(resolveRoleNameWithVariants(role, config.baseName(), i, variants));
+                }
+                map.put(role.id(), names);
+            } else {
+                map.put(role.id(), List.of(role.resolveName(config.baseName(), 1)));
+            }
+        }
+        return map;
+    }
+
+    private static String resolveRoleNameWithVariants(PatternRole role, String baseName, int index, List<String> variants) {
+        if (!variants.isEmpty() && index <= variants.size()) {
+            String clean = variants.get(index - 1).replaceAll("[^a-zA-Z0-9_]", "");
+            if (!clean.isEmpty()) {
+                String variant = Character.toUpperCase(clean.charAt(0)) + clean.substring(1);
+                return role.namePattern()
+                        .replace("{Name}", baseName)
+                        .replace("{Index}", variant)
+                        .replace("{Letter}", variant);
+            }
+        }
+        return role.resolveName(baseName, index);
     }
 }

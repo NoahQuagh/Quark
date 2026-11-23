@@ -75,7 +75,7 @@ public class CreateDesignPatternAction extends AnAction{
             Map<String, Integer> instanceCounts = config.roleInstanceCounts();
             List<String> variants = config.variants().isEmpty() ? List.of("A", "B") : config.variants();
 
-            //todo Lancer la génération dans le package cible sélectionné dans l'arborescence
+            PatternGenerator.generate(project, dir, config);
         }
 
     }

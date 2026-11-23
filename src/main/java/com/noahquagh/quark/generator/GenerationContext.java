@@ -4,6 +4,7 @@ import com.noahquagh.quark.model.DesignPatternType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -23,6 +24,9 @@ public record GenerationContext(
         String baseName,
         String packageName,
         Map<String, List<String>> roleClasses,
+        Set<String> enabledOptionalRoleIds,
+        Map<String, Integer> roleInstanceCounts,
+        List<String> variants,
         boolean pedagogical
 ) {
     /**
@@ -34,6 +38,25 @@ public record GenerationContext(
     public String primaryClassOf(String roleId){
         List<String> names = roleClasses.get(roleId);
         return (names != null && !names.isEmpty()) ? names.get(0) : null;
+    }
+
+
+    /**
+     * Constructeur simplifié conservant les paramètres par défaut (tous les rôles optionnels activés,
+     * multiplicité par défaut et aucune variante textuelle).
+     *
+     * @param pattern
+     * @param baseName
+     * @param packageName
+     * @param roleClasses
+     * @param pedagogical
+     */
+    public GenerationContext(DesignPatternType pattern,
+                             String baseName,
+                             String packageName,
+                             Map<String, List<String>> roleClasses,
+                             boolean pedagogical) {
+        this(pattern, baseName, packageName, roleClasses, Set.of(), Map.of(), List.of(), pedagogical);
     }
 
     /**
