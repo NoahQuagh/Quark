@@ -133,12 +133,13 @@ public class DesignPatternDialog extends DialogWrapper {
         descriptionLabel.setText("<html><body style='width: 400px; color: #888888;'>"
                 + selected.getDescription() + "</body></html>");
 
-        rebuildRolesControls(selected);
-
         currentConfigPanel = selected.createConfigPanel();
         currentConfigPanel.setOnChangeListener(this::refreshPreview);
         specificConfigContainer.removeAll();
         specificConfigContainer.add(currentConfigPanel.getComponent(), BorderLayout.CENTER);
+
+        boolean hasVariantsField = currentConfigPanel.getOptions().containsKey("variants");
+        rebuildRolesControls(selected);
 
         refreshPreview();
         revalidateAndPack();
@@ -211,8 +212,7 @@ public class DesignPatternDialog extends DialogWrapper {
                         ? manyRoleSpinners.get(role.id()).getNumber()
                         : role.defaultInstances();
 
-                int effectiveCount = !variants.isEmpty() ? variants.size() : count;
-                for (int i = 1; i <= effectiveCount; i++) {
+                for (int i = 1; i <= count; i++) {
                     String resolved = resolveRoleNameWithVariants(role, baseName, i, variants);
                     previewListModel.addElement(new PreviewItem(prefix + resolved + ".java", role.kind()));
                 }
