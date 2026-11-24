@@ -22,7 +22,7 @@ import java.util.Map;
  * et déclenche l'écriture dans le répertoire cible.
  *
  * @author noahq
- * @version 1.2
+ * @version 1.3
  */
 public class PatternGenerator {
 
@@ -40,6 +40,7 @@ public class PatternGenerator {
      * @param pattern     patron de conception à générer
      * @param baseName    nom de base saisi par l'utilisateur
      * @param pedagogical {@code true} pour inclure les commentaires pédagogiques
+     * @deprecated Remplacer par {@link #generate(Project, PsiDirectory, PatternGenerationConfig)} depuis la version 1.3 de {@code PatternGenerator}
      */
     public static void generate(Project project,
                                 PsiDirectory directory,
@@ -57,9 +58,9 @@ public class PatternGenerator {
      * Génère et écrit physiquement les fichiers Java d'un patron selon la configuration complète
      * issue de la boîte de dialogue (sous-package, rôles optionnels, multiplicité et variantes).
      *
-     * @param project
-     * @param directory
-     * @param patternConfig
+     * @param project projet IntelliJ actif
+     * @param directory répertoire cible correspondant au package sélectionné
+     * @param patternConfig Objet regroupant l'ensemble des paramètres choisis par l'utilisateur
      */
     public static void generate(Project project, PsiDirectory directory, PatternGenerationConfig patternConfig){
         PsiDirectory targetDir = directory;
