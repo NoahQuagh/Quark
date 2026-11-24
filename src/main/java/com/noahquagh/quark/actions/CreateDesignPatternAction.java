@@ -57,7 +57,7 @@ public class CreateDesignPatternAction extends AnAction{
             if (file != null) dir = file.getContainingDirectory();
         }
 
-        String packageName = "(inconnu)";
+        String packageName = "";
         if (dir != null) {
             PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(dir);
             if (pkg != null) packageName = pkg.getQualifiedName();
@@ -65,17 +65,7 @@ public class CreateDesignPatternAction extends AnAction{
 
         DesignPatternDialog dialog = new DesignPatternDialog(project);
         if (dialog.showAndGet()) {
-            PatternGenerationConfig config = dialog.getConfig();
-
-            DesignPatternType pattern = config.pattern();
-            String baseName = config.baseName();
-            boolean createSubPackage = config.createSubPackage();
-            boolean pedagogical = config.pedagogical();
-            Set<String> enabledOptionals = config.enabledOptionalRoleIds();
-            Map<String, Integer> instanceCounts = config.roleInstanceCounts();
-            List<String> variants = config.variants().isEmpty() ? List.of("A", "B") : config.variants();
-
-            PatternGenerator.generate(project, dir, config);
+            PatternGenerator.generate(project, dir, dialog.getConfig());
         }
 
     }

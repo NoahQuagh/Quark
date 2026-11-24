@@ -64,7 +64,7 @@ public class PatternGenerator {
     public static void generate(Project project, PsiDirectory directory, PatternGenerationConfig patternConfig){
         PsiDirectory targetDir = directory;
         if (patternConfig.createSubPackage()) {
-            String subPkg = patternConfig.pattern().getSubPackage();
+                        String subPkg = patternConfig.pattern().getSubPackage();
             PsiDirectory existing = directory.findSubdirectory(subPkg);
             if (existing != null) {
                 targetDir = existing;
@@ -79,6 +79,10 @@ public class PatternGenerator {
                 }
             }
         }
+        PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(targetDir);
+        String packageName = pkg != null ? pkg.getQualifiedName() : "";
+        Map<String, String> files = generateSources(patternConfig, packageName);
+        PsiFileWriter.writeFiles(project,targetDir,"Générer " + patternConfig.pattern().displayName(),files);
     }
 
     /**
@@ -139,23 +143,9 @@ public class PatternGenerator {
     /**
      * Résout et indexe les noms de classes générés pour chacun des rôles d'un patron.
      *
-     * @param pattern  patron de conception traité
-     * @param baseName nom de base saisi par l'utilisateur
+     * @param config paramètre choisi dans la boite de dialogue
      * @return correspondance ordonnée {@code roleId -> liste des noms de classes}
      */
-    private static Map<String, List<String>> resolveAllClassNames(DesignPatternType pattern, String baseName) {
-        Map<String, List<String>> map = new LinkedHashMap<>();
-        for (PatternRole role : pattern.getRoles()) {
-            int count = Math.max(1, role.defaultInstances());
-            List<String> names = new ArrayList<>();
-            for (int i = 1; i <= count; i++) {
-                names.add(role.resolveName(baseName, i));
-            }
-            map.put(role.id(), names);
-        }
-        return map;
-    }
-
     private static Map<String, List<String>> resolveAllClassNames(PatternGenerationConfig config) {
         Map<String, List<String>> map = new LinkedHashMap<>();
         List<String> variants = config.variants() != null ? config.variants() : List.of();
@@ -167,7 +157,7 @@ public class PatternGenerator {
 
             if (role.multiple()) {
                 int spinnerCount = config.roleInstanceCounts().getOrDefault(role.id(), role.defaultInstances());
-                int effectiveCount = !variants.isEmpty() ? variants.size() : Math.max(1, spinnerCount);
+                int effectiveCount = Math.max(1, spinnerCount);
 
                 List<String> names = new ArrayList<>();
                 for (int i = 1; i <= effectiveCount; i++) {
