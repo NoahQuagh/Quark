@@ -1,26 +1,13 @@
 package com.noahquagh.quark.actions;
 
-import com.noahquagh.quark.jcb.PatternGenerator;
-import com.noahquagh.quark.model.DesignPatternType;
-import com.noahquagh.quark.model.PatternGenerationConfig;
-import com.noahquagh.quark.ui.DesignPatternDialog;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.IdeView;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.LangDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaDirectoryService;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiPackage;
+import com.intellij.psi.*;
+import com.noahquagh.quark.jcb.PatternGenerator;
+import com.noahquagh.quark.ui.DesignPatternDialog;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Action IntelliJ déclenchant la génération d'un patron de conception dans le package sélectionné.
@@ -49,12 +36,19 @@ public class CreateDesignPatternAction extends AnAction{
         if (project == null) return;
 
         PsiDirectory dir = null;
+        PsiClass targetClientClass = null;
+
+        PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
+
+        if (file instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
+            targetClientClass = javaFile.getClasses()[0];
+        }
+
         IdeView view = e.getData(LangDataKeys.IDE_VIEW);
         if (view != null) {
             dir = view.getOrChooseDirectory();
-        } else {
-            PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
-            if (file != null) dir = file.getContainingDirectory();
+        } else if (file != null) {
+            dir = file.getContainingDirectory();
         }
 
         String packageName = "";
@@ -63,9 +57,10 @@ public class CreateDesignPatternAction extends AnAction{
             if (pkg != null) packageName = pkg.getQualifiedName();
         }
 
-        DesignPatternDialog dialog = new DesignPatternDialog(project);
+        String targetClientClassName = (targetClientClass != null) ? targetClientClass.getName() : null;
+        DesignPatternDialog dialog = new DesignPatternDialog(project,packageName,targetClientClassName);
         if (dialog.showAndGet()) {
-            PatternGenerator.generate(project, dir, dialog.getConfig());
+            PatternGenerator.generate(project, dir, dialog.getConfig(),targetClientClass);
         }
 
     }

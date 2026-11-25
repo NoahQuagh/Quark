@@ -2,8 +2,11 @@ package com.noahquagh.quark.jcb;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaDirectoryService;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiPackage;
+import com.noahquagh.quark.jcb.psi.PsiClientInjector;
+import com.noahquagh.quark.jcb.psi.PsiFileWriter;
 import com.noahquagh.quark.jcb.strategy.DefaultPatternStrategy;
 import com.noahquagh.quark.jcb.strategy.PatternStrategy;
 import com.noahquagh.quark.jcb.strategy.SingletonStrategy;
@@ -63,9 +66,22 @@ public class PatternGenerator {
      * @param patternConfig Objet regroupant l'ensemble des paramètres choisis par l'utilisateur
      */
     public static void generate(Project project, PsiDirectory directory, PatternGenerationConfig patternConfig){
+        generate(project,directory,patternConfig,null);
+    }
+
+    /**
+     * Génère et écrit physiquement les fichiers Java d'un patron selon la configuration complète
+     * issue de la boîte de dialogue (sous-package, rôles optionnels, multiplicité et variantes).
+     *
+     * @param project projet IntelliJ actif
+     * @param directory répertoire cible correspondant au package sélectionné
+     * @param patternConfig Objet regroupant l'ensemble des paramètres choisis par l'utilisateur
+     * @param targetClientClass {@code PsiClass} de la classe client cible
+     */
+    public static void generate(Project project, PsiDirectory directory, PatternGenerationConfig patternConfig, PsiClass targetClientClass) {
         PsiDirectory targetDir = directory;
         if (patternConfig.createSubPackage()) {
-                        String subPkg = patternConfig.pattern().getSubPackage();
+            String subPkg = patternConfig.pattern().getSubPackage();
             PsiDirectory existing = directory.findSubdirectory(subPkg);
             if (existing != null) {
                 targetDir = existing;
@@ -80,10 +96,18 @@ public class PatternGenerator {
                 }
             }
         }
+
         PsiPackage pkg = JavaDirectoryService.getInstance().getPackage(targetDir);
         String packageName = pkg != null ? pkg.getQualifiedName() : "";
         Map<String, String> files = generateSources(patternConfig, packageName);
-        PsiFileWriter.writeFiles(project,targetDir,"Générer " + patternConfig.pattern().displayName(),files);
+        PsiFileWriter.writeFiles(project, targetDir, "Générer " + patternConfig.pattern().displayName(), files);
+
+        if (patternConfig.injectClientIntoActiveClass() && targetClientClass != null) {
+            String qualifiedType = resolveClientTargetQualifiedType(patternConfig, packageName);
+            if (qualifiedType != null) {
+                PsiClientInjector.injectClientField(project, targetClientClass, qualifiedType);
+            }
+        }
     }
 
     /**
@@ -113,6 +137,10 @@ public class PatternGenerator {
 
     /**
      * Génère en mémoire les sources Java selon une {@link PatternGenerationConfig} complète.
+     *
+     * @param config configuration complète de la génération contenant le patron et le nom de base
+     * @param packageName nom qualifié du package dans lequel les classes du patron sont générées
+     * @return table associant chaque nom de fichier ({@code Nom.java}) à son code source
      */
     public static Map<String, String> generateSources(PatternGenerationConfig config, String packageName) {
         DesignPatternType pattern = config.pattern();
@@ -150,8 +178,12 @@ public class PatternGenerator {
     private static Map<String, List<String>> resolveAllClassNames(PatternGenerationConfig config) {
         Map<String, List<String>> map = new LinkedHashMap<>();
         List<String> variants = config.variants() != null ? config.variants() : List.of();
+        String clientRoleId = config.pattern().findClientRole().map(PatternRole::id).orElse(null);
 
         for (PatternRole role : config.pattern().getRoles()) {
+            if (role.id().equals(clientRoleId) && config.injectClientIntoActiveClass()) {
+                continue;
+            }
             if (!role.required() && !config.enabledOptionalRoleIds().contains(role.id())) {
                 continue;
             }
@@ -170,6 +202,30 @@ public class PatternGenerator {
             }
         }
         return map;
+    }
+
+    /**
+     * Détermine le nom qualifié complet du type principal que le rôle {@code CLIENT} doit référencer
+     * lors d'une injection directe dans une classe Java existante.
+     *
+     * @param config      configuration complète de la génération contenant le patron et le nom de base
+     * @param packageName nom qualifié du package dans lequel les classes du patron sont générées
+     * @return nom qualifié complet du type cible (ex : {@code "com.app.strategy.PaymentStrategy"}),
+     *         ou {@code null} si le patron ne définit pas de rôle {@code CLIENT} ou de dépendance associée
+     */
+    private static String resolveClientTargetQualifiedType(PatternGenerationConfig config, String packageName) {
+        PatternRole clientRole = config.pattern().findClientRole().orElse(null);
+        if (clientRole == null || clientRole.usesIds().isEmpty()) {
+            return null;
+        }
+        String targetRoleId = clientRole.usesIds().get(0);
+        Map<String, List<String>> resolved = resolveAllClassNames(config);
+        List<String> targetClasses = resolved.get(targetRoleId);
+        if (targetClasses == null || targetClasses.isEmpty()) {
+            return null;
+        }
+        String simpleClassName = targetClasses.get(0);
+        return packageName.isEmpty() ? simpleClassName : packageName + "." + simpleClassName;
     }
 
     private static String resolveRoleNameWithVariants(PatternRole role, String baseName, int index, List<String> variants) {

@@ -35,7 +35,7 @@ import java.util.List;
  * multiplicité des instances) avec prévisualisation en temps réel des fichiers créés.
  *
  * @author noahq
- * @version 1.3
+ * @version 1.4
  */
 public class DesignPatternDialog extends DialogWrapper {
 
@@ -46,6 +46,7 @@ public class DesignPatternDialog extends DialogWrapper {
     private final JBTextField nameField = new JBTextField("MyPattern");
     private final JBCheckBox subPackageCheckBox = new JBCheckBox("Créer un sous-package", true);
     private final JBCheckBox pedagogicalCheckBox = new JBCheckBox("Mode pédagogique (Javadoc & TODO)", true);
+    private final JBCheckBox includeClientCheckBox = new JBCheckBox("Inclure une classe Client", true);
 
     private final JBLabel descriptionLabel = new JBLabel();
     private final JPanel rolesPanel = new JPanel();
@@ -58,6 +59,9 @@ public class DesignPatternDialog extends DialogWrapper {
     private final Map<String, JBIntSpinner> manyRoleSpinners = new LinkedHashMap<>();
 
     private PatternConfigPanel currentConfigPanel;
+
+    private final String activeClassName;
+    private JBCheckBox injectClientCheckBox;
 
     /**
      * Initialise la boîte de dialogue sans package cible prérempli.
@@ -76,7 +80,33 @@ public class DesignPatternDialog extends DialogWrapper {
      * @param targetPackageName nom qualifié du package cible
      */
     public DesignPatternDialog(@Nullable Project project, @Nullable String targetPackageName) {
+        this(project,targetPackageName,null);
+    }
+
+    /**
+     * Initialise la boîte de dialogue avec le nom du package cible sélectionné dans l'arborescence,
+     * configure les écouteurs d'événements temps réel et affiche l'aperçu initial.
+     *
+     * @param project           projet IntelliJ actif
+     * @param targetPackageName nom qualifié du package cible
+     * @param targetClientClassName nom de la classe client cible
+     */
+    public DesignPatternDialog(@Nullable Project project, @Nullable String targetPackageName,@Nullable String targetClientClassName) {
         super(project);
+
+        this.activeClassName = targetClientClassName;
+        this.injectClientCheckBox = new JBCheckBox(
+                activeClassName != null ? "Injecter dans " + activeClassName + ".java (au lieu de créer un fichier Client)" : "",
+                activeClassName != null
+        );
+        this.injectClientCheckBox.setVisible(false);
+        this.injectClientCheckBox.addActionListener(e -> {
+            updateClientRoleCheckboxState();
+            refreshPreview();
+        });
+
+        includeClientCheckBox.addActionListener(e -> refreshPreview());
+
         this.project = project;
         this.targetPackageName = targetPackageName != null ? targetPackageName : "";
 
@@ -141,8 +171,31 @@ public class DesignPatternDialog extends DialogWrapper {
         boolean hasVariantsField = currentConfigPanel.getOptions().containsKey("variants");
         rebuildRolesControls(selected);
 
+        Optional<PatternRole> clientRoleOpt = selected.findClientRole();
+        boolean hasOptionalClient = clientRoleOpt.isPresent() && !clientRoleOpt.get().required() && "CLIENT".equals(clientRoleOpt.get().id());
+        includeClientCheckBox.setVisible(hasOptionalClient);
+        if (hasOptionalClient) {
+            includeClientCheckBox.setText("Inclure " + clientRoleOpt.get().id() + " (" + clientRoleOpt.get().description() + ")");
+        }
+
+        boolean canInject = (activeClassName != null) && clientRoleOpt.isPresent();
+        injectClientCheckBox.setVisible(canInject);
+        updateClientRoleCheckboxState();
+
         refreshPreview();
         revalidateAndPack();
+    }
+
+    /**
+     * Grise la case "Inclure CLIENT" si l'injection est cochée
+     */
+    private void updateClientRoleCheckboxState() {
+        if (!includeClientCheckBox.isVisible()) return;
+        boolean injecting = injectClientCheckBox.isVisible() && injectClientCheckBox.isSelected();
+        includeClientCheckBox.setEnabled(!injecting);
+        if (injecting) {
+            includeClientCheckBox.setSelected(false);
+        }
     }
 
     /**
@@ -158,6 +211,9 @@ public class DesignPatternDialog extends DialogWrapper {
 
         for (PatternRole role : pattern.getRoles()) {
             if (!role.required()) {
+                if ("CLIENT".equals(role.id())) {
+                    continue;
+                }
                 JBCheckBox cb = new JBCheckBox("Inclure " + role.id() + " (" + role.description() + ")", true);
                 cb.addActionListener(e -> refreshPreview());
                 optionalRoleCheckBoxes.put(role.id(), cb);
@@ -198,12 +254,21 @@ public class DesignPatternDialog extends DialogWrapper {
             variants = (List<String>) list;
         }
 
+        boolean isInjectingClient = injectClientCheckBox.isVisible() && injectClientCheckBox.isSelected();
+        String clientRoleId = pattern.findClientRole().map(PatternRole::id).orElse(null);
+
         previewListModel.clear();
         for (PatternRole role : pattern.getRoles()) {
+            if (role.id().equals(clientRoleId) && isInjectingClient) {
+                continue;
+            }
+
             if (!role.required()) {
-                JBCheckBox cb = optionalRoleCheckBoxes.get(role.id());
-                if (cb != null && !cb.isSelected()) {
-                    continue;
+                if ("CLIENT".equals(role.id())) {
+                    if (!includeClientCheckBox.isSelected()) continue;
+                } else {
+                    JBCheckBox cb = optionalRoleCheckBoxes.get(role.id());
+                    if (cb != null && !cb.isSelected()) continue;
                 }
             }
 
@@ -220,6 +285,9 @@ public class DesignPatternDialog extends DialogWrapper {
                 String resolved = role.resolveName(baseName, 1);
                 previewListModel.addElement(new PreviewItem(prefix + resolved + ".java", role.kind()));
             }
+        }
+        if (isInjectingClient){
+            previewListModel.addElement(new PreviewItem("Injection dans " + activeClassName + ".java", ClassKind.CLASS));
         }
     }
 
@@ -289,6 +357,8 @@ public class DesignPatternDialog extends DialogWrapper {
                 .addLabeledComponent("Nom de base :", nameField)
                 .addComponent(subPackageCheckBox)
                 .addComponent(pedagogicalCheckBox)
+                .addComponent(includeClientCheckBox)
+                .addComponent(injectClientCheckBox)
                 .addSeparator()
                 .addComponent(specificConfigContainer)
                 .addComponent(rolesPanel)
@@ -348,6 +418,10 @@ public class DesignPatternDialog extends DialogWrapper {
             variants = (List<String>) list;
         }
 
+        boolean injectClient = injectClientCheckBox.isVisible() && injectClientCheckBox.isSelected();
+        if (injectClient) {
+            enabledOptionals.add("CLIENT");
+        }
         return new PatternGenerationConfig(
                 getSelectedPattern(),
                 getBaseName(),
@@ -355,7 +429,8 @@ public class DesignPatternDialog extends DialogWrapper {
                 pedagogicalCheckBox.isSelected(),
                 enabledOptionals,
                 instanceCounts,
-                variants
+                variants,
+                injectClient
         );
     }
 

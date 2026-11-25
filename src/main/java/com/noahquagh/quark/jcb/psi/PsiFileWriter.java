@@ -1,4 +1,4 @@
-package com.noahquagh.quark.jcb;
+package com.noahquagh.quark.jcb.psi;
 
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.command.WriteCommandAction;
