@@ -3,6 +3,8 @@ package com.noahquagh.quark.jcb.strategy;
 import com.noahquagh.quark.jcb.GenerationContext;
 import com.noahquagh.quark.jcb.JavaClassBuilder;
 import com.noahquagh.quark.model.ClassKind;
+import com.noahquagh.quark.model.DesignPatternType;
+import com.noahquagh.quark.model.ExistingClassInfo;
 import com.noahquagh.quark.model.PatternRole;
 
 import java.util.*;
@@ -14,9 +16,9 @@ import java.util.regex.Pattern;
  * Gère l'héritage, les dépendances, la résolution des placeholders et l'implémentation des méthodes héritées.
  *
  * @author noahq
- * @version 1.2
+ * @version 1.3
  */
-public class DefaultPatternStrategy implements PatternStrategy{
+public class DefaultPatternStrategy implements PatternStrategy {
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([A-Z0-9_]+)}");
 
@@ -31,8 +33,7 @@ public class DefaultPatternStrategy implements PatternStrategy{
     @Override
     public void buildRole(PatternRole role, String className, JavaClassBuilder builder, GenerationContext ctx) {
 
-        //javadoc si pedagog select
-        if (ctx.pedagogical()){
+        if (ctx.pedagogical()) {
             builder.withJavadoc("""
                     /**
                      * Pattern %s (%s)
@@ -46,34 +47,33 @@ public class DefaultPatternStrategy implements PatternStrategy{
             ));
         }
 
-        //heritage
-        if(role.parentId() != null){
+        if (role.parentId() != null) {
             ctx.pattern().getRole(role.parentId()).ifPresent(patternRole -> {
                 String parentClass = ctx.primaryClassOf(role.parentId());
                 String relation = (role.kind() != ClassKind.INTERFACE && patternRole.kind() == ClassKind.INTERFACE)
-                    ? "implements" : "extends";
-                builder.withParent(relation,parentClass);
+                        ? "implements" : "extends";
+                builder.withParent(relation, parentClass);
             });
         }
 
-        //dependances
         if (role.kind() != ClassKind.INTERFACE) {
             for (String usedId : role.usesIds()) {
                 String targetType = ctx.primaryClassOf(usedId);
-                if (targetType != null) {
-                    String fieldName = Character.toLowerCase(targetType.charAt(0)) + targetType.substring(1);
+                if (targetType != null && !targetType.isEmpty()) {
+                    String fieldName = decapitalize(targetType);
                     builder.addField("private " + targetType + " " + fieldName + ";");
                 }
             }
         }
 
-        //collecte et generation des methodes
         for (MethodSpec method : collectMethods(role, ctx)) {
             if (method.signature().contains("List<")) {
                 builder.addImport("java.util.List");
             }
             builder.addMethod(formatMethod(role, method, ctx.pedagogical()));
         }
+
+        applyExistingClassIntegration(role, builder, ctx);
     }
 
     /**
@@ -88,7 +88,6 @@ public class DefaultPatternStrategy implements PatternStrategy{
         List<MethodSpec> result = new ArrayList<>();
         Set<String> seen = new LinkedHashSet<>();
 
-        // récup toutes les signatures des parents
         Set<String> parentSignatures = new HashSet<>();
         List<String> inheritedAbstractOrInterfaceSigs = new ArrayList<>();
 
@@ -112,7 +111,6 @@ public class DefaultPatternStrategy implements PatternStrategy{
             }
         }
 
-        // ajoute les méthodes propres du rôle (@Override uniquement si présentes chez un parent)
         for (String raw : role.methods()) {
             for (String sig : resolvePlaceholders(raw, ctx)) {
                 String norm = normalize(sig);
@@ -126,7 +124,6 @@ public class DefaultPatternStrategy implements PatternStrategy{
             }
         }
 
-        // ajoute les méthodes abstraites/interfaces heritees non encore définies dans le rôle
         if (role.kind() == ClassKind.CLASS) {
             for (String sig : inheritedAbstractOrInterfaceSigs) {
                 if (seen.add(normalize(sig))) {
@@ -230,5 +227,96 @@ public class DefaultPatternStrategy implements PatternStrategy{
      * @param signature  signature Java résolue
      * @param isOverride {@code true} si l'annotation {@code @Override} doit être ajoutée
      */
-    private record MethodSpec(String signature,boolean isOverride){}
+    private record MethodSpec(String signature, boolean isOverride) {}
+
+    /**
+     * Applique l'import et génère les méthodes déléguées réelles lorsqu'une classe existante
+     * a été sélectionnée par l'utilisateur (Adapter, Decorator, Proxy, Facade).
+     */
+    protected void applyExistingClassIntegration(PatternRole role, JavaClassBuilder builder, GenerationContext ctx) {
+        ExistingClassInfo existing = ctx.existingClassInfo();
+        if (existing == null) return;
+
+        boolean needsImport = !existing.packageName().isEmpty()
+                && !existing.packageName().equals(ctx.packageName());
+
+        if (needsImport && shouldImportExistingClass(ctx.pattern(), role.id())) {
+            builder.addImport(existing.qualifiedName());
+        }
+
+        if (ctx.pattern() == DesignPatternType.FACADE && "FACADE".equals(role.id())) {
+            String fieldName = decapitalize(existing.simpleName());
+            builder.addField("private " + existing.simpleName() + " " + fieldName + ";");
+        }
+
+        if (isDelegationTargetRole(ctx.pattern(), role.id()) && !existing.methods().isEmpty()) {
+            String delegateField = resolveDelegateFieldName(role, ctx, existing.simpleName());
+            for (ExistingClassInfo.MethodSignature method : existing.methods()) {
+                builder.addMethod(formatDelegatedMethod(role, method, delegateField, ctx.pedagogical()));
+            }
+        }
+    }
+
+    /**
+     * Formate une méthode extraite d'une classe existante (signature d'interface ou implémentation déléguée).
+     */
+    private String formatDelegatedMethod(PatternRole role,
+                                         ExistingClassInfo.MethodSignature method,
+                                         String delegateField,
+                                         boolean pedagogical) {
+        if (role.kind() == ClassKind.INTERFACE) {
+            return "    " + method.toDeclaration() + ";";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        if (role.parentId() != null) {
+            sb.append("    @Override\n");
+        }
+        sb.append("    public ").append(method.toDeclaration()).append(" {\n");
+        if (pedagogical) {
+            sb.append("        // TODO : Ajouter un traitement spécifique avant ou après la délégation\n");
+        }
+        String call = delegateField + "." + method.name() + "(" + method.toCallArguments() + ");";
+        if ("void".equals(method.returnType())) {
+            sb.append("        ").append(call).append("\n");
+        } else {
+            sb.append("        return ").append(call).append("\n");
+        }
+        sb.append("    }");
+        return sb.toString();
+    }
+
+    private boolean shouldImportExistingClass(DesignPatternType pattern, String roleId) {
+        return switch (pattern) {
+            case ADAPTER -> "ADAPTER".equals(roleId);
+            case PROXY -> "PROXY".equals(roleId);
+            case FACADE -> "FACADE".equals(roleId);
+            case DECORATOR -> "CLIENT".equals(roleId);
+            default -> false;
+        };
+    }
+
+    private boolean isDelegationTargetRole(DesignPatternType pattern, String roleId) {
+        return switch (pattern) {
+            case PROXY -> Set.of("SUBJECT", "PROXY").contains(roleId);
+            case DECORATOR -> Set.of("COMPONENT", "BASE_DECORATOR", "CONCRETE_DECORATOR").contains(roleId);
+            case FACADE -> "FACADE".equals(roleId);
+            default -> false;
+        };
+    }
+
+    private String resolveDelegateFieldName(PatternRole role, GenerationContext ctx, String existingSimpleName) {
+        if (ctx.pattern() == DesignPatternType.DECORATOR) {
+            if ("CONCRETE_DECORATOR".equals(role.id())) {
+                return "super";
+            }
+            return decapitalize(ctx.primaryClassOf("COMPONENT"));
+        }
+        return decapitalize(existingSimpleName);
+    }
+
+    private String decapitalize(String name) {
+        if (name == null || name.isEmpty()) return name;
+        return Character.toLowerCase(name.charAt(0)) + name.substring(1);
+    }
 }

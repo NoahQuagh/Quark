@@ -33,6 +33,12 @@ public class PatternGenerator {
             DesignPatternType.SINGLETON, new SingletonStrategy()
     );
 
+    private static final Map<DesignPatternType, String> REPLACED_ROLE_BY_PATTERN = Map.of(
+            DesignPatternType.ADAPTER, "ADAPTEE",
+            DesignPatternType.DECORATOR, "CONCRETE_COMPONENT",
+            DesignPatternType.PROXY, "REAL_SUBJECT"
+    );
+
     private static final PatternStrategy DEFAULT_STRATEGY = new DefaultPatternStrategy();
 
     /**
@@ -153,12 +159,20 @@ public class PatternGenerator {
                 config.enabledOptionalRoleIds(),
                 config.roleInstanceCounts(),
                 config.variants(),
-                config.pedagogical()
+                config.pedagogical(),
+                config.existingClassInfo()
         );
         PatternStrategy strategy = CUSTOM_STRATEGIES.getOrDefault(pattern, DEFAULT_STRATEGY);
 
+        String replacedRoleId = (config.existingClassInfo() != null)
+                ? REPLACED_ROLE_BY_PATTERN.get(pattern)
+                : null;
+
         Map<String, String> files = new LinkedHashMap<>();
         for (PatternRole role : pattern.getRoles()) {
+            if (role.id().equals(replacedRoleId)) {
+                continue;
+            }
             for (String className : ctx.allClassesOf(role.id())) {
                 JavaClassBuilder builder = new JavaClassBuilder(packageName, role.kind(), className);
                 strategy.buildRole(role, className, builder, ctx);
@@ -179,12 +193,21 @@ public class PatternGenerator {
         Map<String, List<String>> map = new LinkedHashMap<>();
         List<String> variants = config.variants() != null ? config.variants() : List.of();
         String clientRoleId = config.pattern().findClientRole().map(PatternRole::id).orElse(null);
+        String replacedRoleId = (config.existingClassInfo() != null)
+                ? REPLACED_ROLE_BY_PATTERN.get(config.pattern())
+                : null;
 
         for (PatternRole role : config.pattern().getRoles()) {
             if (role.id().equals(clientRoleId) && config.injectClientIntoActiveClass()) {
                 continue;
             }
             if (!role.required() && !config.enabledOptionalRoleIds().contains(role.id())) {
+                continue;
+            }
+
+            // Si ce rôle est remplacé par une classe existante, on enregistre son vrai nom simple
+            if (role.id().equals(replacedRoleId) && config.existingClassInfo() != null) {
+                map.put(role.id(), List.of(config.existingClassInfo().simpleName()));
                 continue;
             }
 

@@ -16,10 +16,8 @@ import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
-import com.noahquagh.quark.model.ClassKind;
-import com.noahquagh.quark.model.DesignPatternType;
-import com.noahquagh.quark.model.PatternGenerationConfig;
-import com.noahquagh.quark.model.PatternRole;
+import com.noahquagh.quark.jcb.psi.PsiClassInspector;
+import com.noahquagh.quark.model.*;
 import com.noahquagh.quark.ui.config.PatternConfigPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -480,6 +478,7 @@ public class DesignPatternDialog extends DialogWrapper {
         if (injectClient) {
             enabledOptionals.add("CLIENT");
         }
+        ExistingClassInfo existingInfo = PsiClassInspector.inspect(getSelectedExistingClass());
         return new PatternGenerationConfig(
                 getSelectedPattern(),
                 getBaseName(),
@@ -488,7 +487,8 @@ public class DesignPatternDialog extends DialogWrapper {
                 enabledOptionals,
                 instanceCounts,
                 variants,
-                injectClient
+                injectClient,
+                existingInfo
         );
     }
 

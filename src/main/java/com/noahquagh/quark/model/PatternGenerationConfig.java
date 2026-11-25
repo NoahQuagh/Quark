@@ -1,5 +1,7 @@
 package com.noahquagh.quark.model;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +30,8 @@ public record PatternGenerationConfig(
         Set<String> enabledOptionalRoleIds,
         Map<String, Integer> roleInstanceCounts,
         List<String> variants,
-        boolean injectClientIntoActiveClass
+        boolean injectClientIntoActiveClass,
+        @Nullable ExistingClassInfo existingClassInfo
 ) {
     /**
      * Constructeur de compatibilité désactivant par défaut l'injection dans une classe active.
@@ -42,6 +45,6 @@ public record PatternGenerationConfig(
             Map<String, Integer> roleInstanceCounts,
             List<String> variants
     ) {
-        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, false);
+        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, false,null);
     }
 }

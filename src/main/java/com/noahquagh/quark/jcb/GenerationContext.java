@@ -1,6 +1,8 @@
 package com.noahquagh.quark.jcb;
 
 import com.noahquagh.quark.model.DesignPatternType;
+import com.noahquagh.quark.model.ExistingClassInfo;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +29,8 @@ public record GenerationContext(
         Set<String> enabledOptionalRoleIds,
         Map<String, Integer> roleInstanceCounts,
         List<String> variants,
-        boolean pedagogical
+        boolean pedagogical,
+        @Nullable ExistingClassInfo existingClassInfo
 ) {
     /**
      * Retourne le nom de la première classe générée pour un identifiant de rôle donné.
@@ -56,7 +59,7 @@ public record GenerationContext(
                              String packageName,
                              Map<String, List<String>> roleClasses,
                              boolean pedagogical) {
-        this(pattern, baseName, packageName, roleClasses, Set.of(), Map.of(), List.of(), pedagogical);
+        this(pattern, baseName, packageName, roleClasses, Set.of(), Map.of(), List.of(), pedagogical,null);
     }
 
     /**
