@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBIntSpinner;
@@ -62,6 +63,24 @@ public class DesignPatternDialog extends DialogWrapper {
 
     private final String activeClassName;
     private JBCheckBox injectClientCheckBox;
+
+    private static final Map<DesignPatternType, String> REPLACED_ROLE_BY_PATTERN = Map.of(
+            DesignPatternType.ADAPTER, "ADAPTEE",
+            DesignPatternType.DECORATOR, "CONCRETE_COMPONENT",
+            DesignPatternType.PROXY, "REAL_SUBJECT"
+    );
+
+    private static final Set<DesignPatternType> EXISTING_CLASS_PATTERNS = Set.of(
+            DesignPatternType.ADAPTER,
+            DesignPatternType.DECORATOR,
+            DesignPatternType.PROXY,
+            DesignPatternType.FACADE
+    );
+
+    private final JPanel existingClassRow = new JPanel(new BorderLayout(6, 0));
+    private final JBLabel existingClassLabel = new JBLabel("Classe existante :");
+    private ExistingClassPicker existingClassPicker;
+    private final JButton clearExistingClassButton = new JButton("Effacer");
 
     /**
      * Initialise la boîte de dialogue sans package cible prérempli.
@@ -123,6 +142,21 @@ public class DesignPatternDialog extends DialogWrapper {
             }
         });
 
+        this.existingClassPicker = new ExistingClassPicker(
+                project,
+                "Sélectionner une classe existante",
+                chosen -> refreshPreview()
+        );
+        clearExistingClassButton.addActionListener(e -> {
+            existingClassPicker.clearSelection();
+            refreshPreview();
+        });
+
+        existingClassRow.add(existingClassPicker, BorderLayout.CENTER);
+        existingClassRow.add(clearExistingClassButton, BorderLayout.EAST);
+        existingClassRow.setVisible(false);
+        existingClassLabel.setVisible(false);
+
         setTitle("Quark : Générer un Design Pattern en Java");
         onPatternChanged();
         init();
@@ -182,6 +216,21 @@ public class DesignPatternDialog extends DialogWrapper {
         injectClientCheckBox.setVisible(canInject);
         updateClientRoleCheckboxState();
 
+        boolean supportsExistingClass = EXISTING_CLASS_PATTERNS.contains(selected);
+        existingClassLabel.setVisible(supportsExistingClass);
+        existingClassRow.setVisible(supportsExistingClass);
+        if (!supportsExistingClass && existingClassPicker != null) {
+            existingClassPicker.clearSelection();
+        } else if (supportsExistingClass) {
+            existingClassLabel.setText(switch (selected) {
+                case ADAPTER -> "Classe à adapter (Adaptee) :";
+                case DECORATOR -> "Composant à décorer :";
+                case PROXY -> "Sujet réel à protéger :";
+                case FACADE -> "Sous-système existant :";
+                default -> "Classe existante :";
+            });
+        }
+
         refreshPreview();
         revalidateAndPack();
     }
@@ -240,6 +289,7 @@ public class DesignPatternDialog extends DialogWrapper {
     @SuppressWarnings("unchecked")
     private void refreshPreview() {
         DesignPatternType pattern = getSelectedPattern();
+        PsiClass existingClass = (existingClassPicker != null) ? existingClassPicker.getSelectedClass() : null;
         if (pattern == null) return;
 
         String subPkg = pattern.getSubPackage();
@@ -260,6 +310,10 @@ public class DesignPatternDialog extends DialogWrapper {
         previewListModel.clear();
         for (PatternRole role : pattern.getRoles()) {
             if (role.id().equals(clientRoleId) && isInjectingClient) {
+                continue;
+            }
+
+            if (existingClass != null && role.id().equals(REPLACED_ROLE_BY_PATTERN.get(pattern))){
                 continue;
             }
 
@@ -285,6 +339,9 @@ public class DesignPatternDialog extends DialogWrapper {
                 String resolved = role.resolveName(baseName, 1);
                 previewListModel.addElement(new PreviewItem(prefix + resolved + ".java", role.kind()));
             }
+        }
+        if (existingClass != null) {
+            previewListModel.addElement(new PreviewItem("Réutilise : " + existingClass.getQualifiedName(), ClassKind.CLASS));
         }
         if (isInjectingClient){
             previewListModel.addElement(new PreviewItem("Injection dans " + activeClassName + ".java", ClassKind.CLASS));
@@ -359,6 +416,7 @@ public class DesignPatternDialog extends DialogWrapper {
                 .addComponent(pedagogicalCheckBox)
                 .addComponent(includeClientCheckBox)
                 .addComponent(injectClientCheckBox)
+                .addLabeledComponent(existingClassLabel, existingClassRow)
                 .addSeparator()
                 .addComponent(specificConfigContainer)
                 .addComponent(rolesPanel)
@@ -450,6 +508,16 @@ public class DesignPatternDialog extends DialogWrapper {
      */
     public String getBaseName() {
         return nameField.getText().trim();
+    }
+
+    /**
+     * Retourne la classe existante sélectionnée par l'utilisateur pour être adaptée ou enveloppée,
+     * ou {@code null} si une classe par défaut doit être générée.
+     *
+     * @return {@link PsiClass} sélectionnée dans le projet, ou {@code null}
+     */
+    public @Nullable PsiClass getSelectedExistingClass() {
+        return existingClassPicker != null ? existingClassPicker.getSelectedClass() : null;
     }
 
     /**
