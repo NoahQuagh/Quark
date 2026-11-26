@@ -16,7 +16,7 @@ import static com.noahquagh.quark.model.PatternRole.*;
  * noms, relations (extends / implements / uses) et méthodes.
  *
  * @author noahq
- * @version 1.4
+ * @version 1.5
  */
 public enum DesignPatternType {
 
@@ -35,7 +35,7 @@ public enum DesignPatternType {
                     .extending("ABSTRACT_PRODUCT_A").many(),
             concreteClass("CONCRETE_PRODUCT_B", "Concrete{Name}ProductB{Index}", "Variante concrète du produit B")
                     .extending("ABSTRACT_PRODUCT_B").many(),
-            concreteClass("CLIENT", "{Name}Client", "Utilise uniquement les interfaces abstraites")
+            concreteClass("CLIENT", "{Name}Client", "Utilise uniquement les interfaces abstraites").asClient()
                     .uses("ABSTRACT_FACTORY").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -51,7 +51,7 @@ public enum DesignPatternType {
                     .extending("BUILDER").uses("PRODUCT").many(),
             concreteClass("PRODUCT", "{Name}", "Objet complexe à construire"),
             concreteClass("DIRECTOR", "{Name}Director", "Orchestre l'ordre des étapes",
-                    "void construct()")
+                    "void construct()").asClient()
                     .uses("BUILDER").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -69,7 +69,7 @@ public enum DesignPatternType {
                     .uses("PRODUCT"),
             concreteClass("CONCRETE_CREATOR", "Concrete{Name}Creator{Letter}", "Retourne un produit concret")
                     .extending("CREATOR").many(),
-            concreteClass("CLIENT", "{Name}Client", "Utilise le créateur pour obtenir un produit")
+            concreteClass("CLIENT", "{Name}Client", "Utilise le créateur pour obtenir un produit").asClient()
                     .uses("CREATOR").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -87,7 +87,7 @@ public enum DesignPatternType {
                     "void register(String key, {PROTOTYPE} prototype)",
                     "{PROTOTYPE} get(String key)")
                     .uses("PROTOTYPE").optional(),
-            concreteClass("CLIENT", "{Name}Client", "Clone des prototypes existants")
+            concreteClass("CLIENT", "{Name}Client", "Clone des prototypes existants").asClient()
                     .uses("PROTOTYPE").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -110,10 +110,12 @@ public enum DesignPatternType {
     ADAPTER(STRUCTURAL,
             "Convertit l'interface d'une classe en une autre attendue par le client.",
             iface("TARGET", "{Name}Target", "Interface attendue par le client", "void request()"),
-            concreteClass("ADAPTEE", "{Name}Adaptee", "Classe existante à adapter", "void specificRequest()"),
+            concreteClass("ADAPTEE", "{Name}Adaptee", "Classe existante à adapter", "void specificRequest()")
+                    .replaceableByExisting(ExistingClassMode.ADAPT),
             concreteClass("ADAPTER", "{Name}Adapter", "Traduit Target vers Adaptee", "void request()")
                     .extending("TARGET").uses("ADAPTEE"),
-            concreteClass("CLIENT", "{Name}Client", "Utilise l'interface Target").uses("TARGET").optional()){
+            concreteClass("CLIENT", "{Name}Client", "Utilise l'interface Target")
+                    .uses("TARGET").optional().asClient()){
         @Override
         public PatternConfigPanel createConfigPanel() {
             return new StandardPatternPanel(getDescription());
@@ -130,7 +132,7 @@ public enum DesignPatternType {
             iface("IMPLEMENTOR", "{Name}Implementor", "Interface d'implémentation", "void operationImpl()"),
             concreteClass("CONCRETE_IMPLEMENTOR", "Concrete{Name}Implementor{Letter}", "Implémentation concrète")
                     .extending("IMPLEMENTOR").many(),
-            concreteClass("CLIENT", "{Name}Client", "Utilise l'abstraction")
+            concreteClass("CLIENT", "{Name}Client", "Utilise l'abstraction").asClient()
                     .uses("ABSTRACTION").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -149,7 +151,7 @@ public enum DesignPatternType {
                     "void remove({COMPONENT} component)",
                     "List<{COMPONENT}> getChildren()")
                     .extending("COMPONENT").uses("COMPONENT"),
-            concreteClass("CLIENT", "{Name}Client", "Manipule les composants via l'interface commune")
+            concreteClass("CLIENT", "{Name}Client", "Manipule les composants via l'interface commune").asClient()
                     .uses("COMPONENT").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -162,14 +164,14 @@ public enum DesignPatternType {
             iface("COMPONENT", "{Name}Component", "Interface commune", "void operation()"),
             concreteClass("CONCRETE_COMPONENT", "Concrete{Name}Component", "Objet de base décoré",
                     "void operation()")
-                    .extending("COMPONENT"),
+                    .extending("COMPONENT").replaceableByExisting(ExistingClassMode.IMPLEMENT_PARENT),
             abstractClass("BASE_DECORATOR", "{Name}Decorator", "Délègue au composant enveloppé",
                     "void operation()")
                     .extending("COMPONENT").uses("COMPONENT"),
             concreteClass("CONCRETE_DECORATOR", "Concrete{Name}Decorator{Letter}", "Ajoute un comportement")
                     .extending("BASE_DECORATOR").many(),
             concreteClass("CLIENT", "{Name}Client", "Manipule le composant décoré")
-                    .uses("COMPONENT").optional()){
+                    .uses("COMPONENT").optional().asClient()){
         @Override
         public PatternConfigPanel createConfigPanel() {
             return new MultiVariantPatternPanel("Variantes (ex: A, B) :");
@@ -179,11 +181,11 @@ public enum DesignPatternType {
     FACADE(STRUCTURAL,
             "Fournit une interface simplifiée à un sous-système complexe.",
             concreteClass("FACADE", "{Name}Facade", "Point d'entrée simplifié", "void operation()")
-                    .uses("SUBSYSTEM_A", "SUBSYSTEM_B"),
+                    .uses("SUBSYSTEM_A", "SUBSYSTEM_B").replaceableByExisting(ExistingClassMode.WRAP),
             concreteClass("SUBSYSTEM_A", "{Name}SubsystemA", "Classe du sous-système", "void operationA()"),
             concreteClass("SUBSYSTEM_B", "{Name}SubsystemB", "Classe du sous-système", "void operationB()"),
             concreteClass("CLIENT", "{Name}Client", "Appelle la façade")
-                    .uses("FACADE").optional()){
+                    .uses("FACADE").optional().asClient()){
         @Override
         public PatternConfigPanel createConfigPanel() {
             return new StandardPatternPanel(getDescription());
@@ -200,7 +202,7 @@ public enum DesignPatternType {
             concreteClass("FLYWEIGHT_FACTORY", "{Name}FlyweightFactory", "Crée et met en cache les flyweights",
                     "{FLYWEIGHT} getFlyweight(String key)")
                     .uses("FLYWEIGHT"),
-            concreteClass("CLIENT", "{Name}Client", "Demande des flyweights à la fabrique")
+            concreteClass("CLIENT", "{Name}Client", "Demande des flyweights à la fabrique").asClient()
                     .uses("FLYWEIGHT_FACTORY").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -212,11 +214,11 @@ public enum DesignPatternType {
             "Fournit un substitut contrôlant l'accès à un autre objet.",
             iface("SUBJECT", "{Name}Subject", "Interface commune", "void request()"),
             concreteClass("REAL_SUBJECT", "Real{Name}Subject", "Objet réel", "void request()")
-                    .extending("SUBJECT"),
+                    .extending("SUBJECT").replaceableByExisting(ExistingClassMode.IMPLEMENT_PARENT),
             concreteClass("PROXY", "{Name}Proxy", "Contrôle l'accès au sujet réel", "void request()")
-                    .extending("SUBJECT").uses("REAL_SUBJECT"),
+                    .extending("SUBJECT").uses("SUBJECT"),
             concreteClass("CLIENT", "{Name}Client", "Interagit avec le sujet via le proxy")
-                    .uses("SUBJECT").optional()){
+                    .uses("SUBJECT").optional().asClient()){
         @Override
         public PatternConfigPanel createConfigPanel() {
             return new StandardPatternPanel(getDescription());
@@ -235,7 +237,7 @@ public enum DesignPatternType {
                     "void handle({REQUEST} request)")
                     .extending("HANDLER").many(),
             concreteClass("REQUEST", "{Name}Request", "Requête à traiter"),
-            concreteClass("CLIENT", "{Name}Client", "Envoie la requête au premier maillon")
+            concreteClass("CLIENT", "{Name}Client", "Envoie la requête au premier maillon").asClient()
                     .uses("HANDLER").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -253,7 +255,7 @@ public enum DesignPatternType {
             concreteClass("INVOKER", "{Name}Invoker", "Déclenche les commandes",
                     "void setCommand({COMMAND} command)", "void invoke()")
                     .uses("COMMAND"),
-            concreteClass("CLIENT", "{Name}Client", "Crée les commandes et configure l'invocateur")
+            concreteClass("CLIENT", "{Name}Client", "Crée les commandes et configure l'invocateur").asClient()
                     .uses("INVOKER").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -272,7 +274,7 @@ public enum DesignPatternType {
                     "Object interpret({CONTEXT} context)")
                     .extending("ABSTRACT_EXPRESSION").uses("ABSTRACT_EXPRESSION").many(),
             concreteClass("CONTEXT", "{Name}Context", "Informations globales d'interprétation"),
-            concreteClass("CLIENT", "{Name}Client", "Construit l'arbre syntaxique et lance l'interprétation")
+            concreteClass("CLIENT", "{Name}Client", "Construit l'arbre syntaxique et lance l'interprétation").asClient()
                     .uses("ABSTRACT_EXPRESSION").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -292,7 +294,7 @@ public enum DesignPatternType {
             concreteClass("CONCRETE_AGGREGATE", "Concrete{Name}Aggregate", "Collection concrète",
                     "{ITERATOR} createIterator()")
                     .extending("AGGREGATE"),
-            concreteClass("CLIENT", "{Name}Client", "Parcourt la collection via son itérateur")
+            concreteClass("CLIENT", "{Name}Client", "Parcourt la collection via son itérateur").asClient()
                     .uses("AGGREGATE").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -311,7 +313,7 @@ public enum DesignPatternType {
                     .uses("MEDIATOR"),
             concreteClass("CONCRETE_COLLEAGUE", "Concrete{Name}Colleague{Letter}", "Collègue concret")
                     .extending("COLLEAGUE").many(),
-            concreteClass("CLIENT", "{Name}Client", "Initialise le médiateur et les collègues")
+            concreteClass("CLIENT", "{Name}Client", "Initialise le médiateur et les collègues").asClient()
                     .uses("MEDIATOR").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -349,7 +351,7 @@ public enum DesignPatternType {
             concreteClass("CONCRETE_OBSERVER", "Concrete{Name}Observer{Letter}", "Réagit aux changements",
                     "void update()")
                     .extending("OBSERVER").uses("CONCRETE_SUBJECT").many(),
-            concreteClass("CLIENT", "{Name}Client", "Configure le sujet et abonne les observateurs")
+            concreteClass("CLIENT", "{Name}Client", "Configure le sujet et abonne les observateurs").asClient()
                     .uses("SUBJECT").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -360,7 +362,7 @@ public enum DesignPatternType {
     STATE(BEHAVIORAL,
             "Change le comportement d'un objet selon son état interne.",
             concreteClass("CONTEXT", "{Name}Context", "Délègue au state courant",
-                    "void setState({STATE} state)", "void request()")
+                    "void setState({STATE} state)", "void request()").asClient()
                     .uses("STATE"),
             iface("STATE", "{Name}State", "Interface d'état", "void handle({CONTEXT} context)")
                     .uses("CONTEXT"),
@@ -380,7 +382,7 @@ public enum DesignPatternType {
                     "void execute()")
                     .extending("STRATEGY").many(),
             concreteClass("CONTEXT", "{Name}Context", "Utilise une stratégie",
-                    "void setStrategy({STRATEGY} strategy)", "void executeStrategy()")
+                    "void setStrategy({STRATEGY} strategy)", "void executeStrategy()").asClient()
                     .uses("STRATEGY")){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -398,7 +400,7 @@ public enum DesignPatternType {
             concreteClass("CONCRETE_CLASS", "Concrete{Name}Template{Letter}", "Implémente les étapes",
                     "void step1()", "void step2()")
                     .extending("ABSTRACT_CLASS").many(),
-            concreteClass("CLIENT", "{Name}Client", "Exécute l'algorithme via le template")
+            concreteClass("CLIENT", "{Name}Client", "Exécute l'algorithme via le template").asClient()
                     .uses("ABSTRACT_CLASS").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -418,7 +420,7 @@ public enum DesignPatternType {
             concreteClass("CONCRETE_ELEMENT", "Concrete{Name}Element{Letter}", "Élément concret",
                     "void accept({VISITOR} visitor)")
                     .extending("ELEMENT").many(),
-            concreteClass("CLIENT", "{Name}Client", "Applique des visiteurs sur les éléments")
+            concreteClass("CLIENT", "{Name}Client", "Applique des visiteurs sur les éléments").asClient()
                     .uses("ELEMENT").optional()){
         @Override
         public PatternConfigPanel createConfigPanel() {
@@ -489,8 +491,6 @@ public enum DesignPatternType {
         return roles.stream().filter(r -> r.id().equals(roleId)).findFirst();
     }
 
-    private static final List<String> CLIENT_ROLE_IDS = List.of("CLIENT", "CONTEXT", "DIRECTOR");
-
     /**
      * Recherche le rôle représentant le point d'entrée client du patron
      * ({@code CLIENT}, {@code CONTEXT} ou {@code DIRECTOR}) lorsqu'il existe.
@@ -498,10 +498,13 @@ public enum DesignPatternType {
      * @return un {@link Optional} contenant le rôle appelant s'il est défini pour ce patron
      */
     public Optional<PatternRole> findClientRole() {
-        return roles.stream()
-                .filter(r -> CLIENT_ROLE_IDS.contains(r.id()))
-                .findFirst();
+        return roles.stream().filter(PatternRole::clientRole).findFirst();
     }
+
+    public Optional<PatternRole> findExistingTargetRole() {
+        return roles.stream().filter(PatternRole::canBeReplacedByExisting).findFirst();
+    }
+
 
     /**
      * Retourne un nom de sous-package normalisé en minuscules pour isoler les fichiers générés

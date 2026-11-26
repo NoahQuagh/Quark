@@ -1,6 +1,8 @@
 package com.noahquagh.quark.jcb.strategy;
 
-import com.noahquagh.quark.jcb.GenerationContext;
+import com.noahquagh.quark.generator.CodeBuilder;
+import com.noahquagh.quark.generator.GenerationContext;
+import com.noahquagh.quark.generator.PatternStrategy;
 import com.noahquagh.quark.jcb.JavaClassBuilder;
 import com.noahquagh.quark.model.PatternRole;
 
@@ -23,7 +25,7 @@ public class SingletonStrategy implements PatternStrategy {
      * @param ctx       contexte global de la génération
      */
     @Override
-    public void buildRole(PatternRole role, String className, JavaClassBuilder builder, GenerationContext ctx) {
+    public void buildRole(PatternRole role, String className, CodeBuilder builder, GenerationContext ctx) {
         if (ctx.pedagogical()) {
             builder.withJavadoc("""
                     /**

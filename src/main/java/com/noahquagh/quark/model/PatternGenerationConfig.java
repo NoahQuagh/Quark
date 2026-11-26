@@ -18,9 +18,10 @@ import java.util.Set;
  * @param roleInstanceCounts     nombre d'instances configuré par identifiant de rôle multiple
  * @param variants               liste ordonnée des noms de variantes personnalisées (ex : {@code ["PayPal", "Stripe"]})
  * @param injectClientIntoActiveClass {@code true} pour injecter le client dans la classe ouverte au lieu de créer un fichier Client
+ * @param existingClassInfo
  *
  * @author noahq
- * @version 1.1
+ * @version 1.2
  */
 public record PatternGenerationConfig(
         DesignPatternType pattern,
@@ -33,9 +34,19 @@ public record PatternGenerationConfig(
         boolean injectClientIntoActiveClass,
         @Nullable ExistingClassInfo existingClassInfo
 ) {
-    /**
-     * Constructeur de compatibilité désactivant par défaut l'injection dans une classe active.
-     */
+    public PatternGenerationConfig(
+            DesignPatternType pattern,
+            String baseName,
+            boolean createSubPackage,
+            boolean pedagogical,
+            Set<String> enabledOptionalRoleIds,
+            Map<String, Integer> roleInstanceCounts,
+            List<String> variants,
+            boolean injectClientIntoActiveClass
+    ) {
+        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, injectClientIntoActiveClass, null);
+    }
+
     public PatternGenerationConfig(
             DesignPatternType pattern,
             String baseName,
@@ -45,6 +56,6 @@ public record PatternGenerationConfig(
             Map<String, Integer> roleInstanceCounts,
             List<String> variants
     ) {
-        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, false,null);
+        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, false, null);
     }
 }

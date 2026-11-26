@@ -1,5 +1,7 @@
 package com.noahquagh.quark.model;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -32,7 +34,7 @@ import java.util.stream.IntStream;
  * @param required         false si le rôle peut être décoché dans l'assistant
  *
  * @author noahq
- * @version 1.2
+ * @version 1.3
  */
 public record PatternRole(
         String id,
@@ -43,7 +45,9 @@ public record PatternRole(
         String parentId,
         List<String> usesIds,
         int defaultInstances,
-        boolean required
+        boolean required,
+        boolean clientRole,
+        @Nullable ExistingClassMode existingClassMode
 ) {
 
     // Fabriques
@@ -59,7 +63,7 @@ public record PatternRole(
      */
     public static PatternRole iface(String id, String namePattern, String description, String... methods) {
         return new PatternRole(id, namePattern, ClassKind.INTERFACE, description,
-                List.of(methods), null, List.of(), 1, true);
+                List.of(methods), null, List.of(), 1, true, false, null);
     }
 
     /**
@@ -73,7 +77,7 @@ public record PatternRole(
      */
     public static PatternRole abstractClass(String id, String namePattern, String description, String... methods) {
         return new PatternRole(id, namePattern, ClassKind.ABSTRACT_CLASS, description,
-                List.of(methods), null, List.of(), 1, true);
+                List.of(methods), null, List.of(), 1, true, false, null);
     }
 
     /**
@@ -87,7 +91,7 @@ public record PatternRole(
      */
     public static PatternRole concreteClass(String id, String namePattern, String description, String... methods) {
         return new PatternRole(id, namePattern, ClassKind.CLASS, description,
-                List.of(methods), null, List.of(), 1, true);
+                List.of(methods), null, List.of(), 1, true, false, null);
     }
 
     // Modificateurs
@@ -99,7 +103,7 @@ public record PatternRole(
      * @return nouvelle instance de {@link PatternRole} avec {@code parentId} renseigné
      */
     public PatternRole extending(String parentId) {
-        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, defaultInstances, required);
+        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, defaultInstances, required, clientRole, existingClassMode);
     }
 
     /**
@@ -109,7 +113,7 @@ public record PatternRole(
      * @return nouvelle instance de {@link PatternRole} avec {@code usesIds} renseigné
      */
     public PatternRole uses(String... ids) {
-        return new PatternRole(id, namePattern, kind, description, methods, parentId, List.of(ids), defaultInstances, required);
+        return new PatternRole(id, namePattern, kind, description, methods, parentId, List.of(ids), defaultInstances, required, clientRole, existingClassMode);
     }
 
     /**
@@ -128,7 +132,7 @@ public record PatternRole(
      * @return nouvelle instance de {@link PatternRole} avec {@code defaultInstances = count}
      */
     public PatternRole many(int count) {
-        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, count, required);
+        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, count, required, clientRole, existingClassMode);
     }
 
     /**
@@ -137,10 +141,18 @@ public record PatternRole(
      * @return nouvelle instance de {@link PatternRole} facultative
      */
     public PatternRole optional() {
-        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, defaultInstances, false);
+        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, defaultInstances, false, clientRole, existingClassMode);
     }
 
-    // Utilitaires
+    /** Marque ce rôle comme le point d'entrée client injectable dans une classe existante. */
+    public PatternRole asClient() {
+        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, defaultInstances, required, true, existingClassMode);
+    }
+
+    /** Autorise le remplacement de ce rôle par une classe existante du projet selon le mode indiqué. */
+    public PatternRole replaceableByExisting(ExistingClassMode mode) {
+        return new PatternRole(id, namePattern, kind, description, methods, parentId, usesIds, defaultInstances, required, clientRole, mode);
+    }
 
     /**
      * Indique si ce rôle génère plusieurs classes concrètes.
@@ -149,6 +161,11 @@ public record PatternRole(
      */
     public boolean multiple() {
         return defaultInstances > 1;
+    }
+
+
+    public boolean canBeReplacedByExisting() {
+        return existingClassMode != null;
     }
 
     /**

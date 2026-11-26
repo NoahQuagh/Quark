@@ -1,5 +1,6 @@
 package com.noahquagh.quark.jcb;
 
+import com.noahquagh.quark.generator.CodeBuilder;
 import com.noahquagh.quark.model.ClassKind;
 
 import java.util.ArrayList;
@@ -11,9 +12,9 @@ import java.util.Set;
  * Constructeur fluide permettant d'assembler syntaxiquement un fichier source Java.
  *
  * @author noahq
- * @version 1.1
+ * @version 1.2
  */
-public class JavaClassBuilder {
+public class JavaClassBuilder implements CodeBuilder {
     private final String packageName;
     private final ClassKind kind;
     private final String className;
@@ -45,6 +46,7 @@ public class JavaClassBuilder {
      * @param javadoc commentaire Javadoc formaté
      * @return l'instance courante du builder
      */
+    @Override
     public JavaClassBuilder withJavadoc(String javadoc){
         this.javadoc = javadoc;
         return this;
@@ -57,6 +59,7 @@ public class JavaClassBuilder {
      * @param parentClassName nom du type parent
      * @return l'instance courante du builder
      */
+    @Override
     public JavaClassBuilder withParent(String relationKeyword, String parentClassName){
         if (parentClassName != null && !parentClassName.isBlank()){
             this.inheritanceClause=" "+relationKeyword+" "+parentClassName;
@@ -70,6 +73,7 @@ public class JavaClassBuilder {
      * @param qualifiedClassName nom complet de la classe à importer (ex : {@code "java.util.List"})
      * @return l'instance courante du builder
      */
+    @Override
     public JavaClassBuilder addImport(String qualifiedClassName){
         imports.add(qualifiedClassName);
         return this;
@@ -81,6 +85,7 @@ public class JavaClassBuilder {
      * @param declaration ligne complète de déclaration de champ (avec point-virgule)
      * @return l'instance courante du builder
      */
+    @Override
     public JavaClassBuilder addField(String declaration){
         fields.add(declaration);
         return this;
@@ -92,6 +97,7 @@ public class JavaClassBuilder {
      * @param constructorCode bloc complet du constructeur
      * @return l'instance courante du builder
      */
+    @Override
     public JavaClassBuilder addConstructor(String constructorCode){
         constructors.add(constructorCode);
         return this;
@@ -103,6 +109,7 @@ public class JavaClassBuilder {
      * @param methodCode bloc complet de la méthode
      * @return l'instance courante du builder
      */
+    @Override
     public JavaClassBuilder addMethod(String methodCode){
         methods.add(methodCode);
         return this;
@@ -113,6 +120,7 @@ public class JavaClassBuilder {
      *
      * @return code source Java formaté
      */
+    @Override
     public String build(){
         StringBuilder sb = new StringBuilder();
 

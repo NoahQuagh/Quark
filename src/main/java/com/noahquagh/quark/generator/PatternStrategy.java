@@ -1,6 +1,5 @@
-package com.noahquagh.quark.jcb.strategy;
+package com.noahquagh.quark.generator;
 
-import com.noahquagh.quark.jcb.GenerationContext;
 import com.noahquagh.quark.jcb.JavaClassBuilder;
 import com.noahquagh.quark.model.PatternRole;
 
@@ -20,5 +19,5 @@ public interface PatternStrategy {
      * @param builder   constructeur fluide du fichier source Java
      * @param ctx       contexte global de la génération
      */
-    void buildRole(PatternRole role, String className, JavaClassBuilder builder, GenerationContext ctx);
+    void buildRole(PatternRole role, String className, CodeBuilder builder, GenerationContext ctx);
 }

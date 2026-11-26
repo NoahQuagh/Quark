@@ -5,7 +5,7 @@ import com.intellij.ide.IdeView;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.noahquagh.quark.jcb.PatternGenerator;
+import com.noahquagh.quark.generator.PatternGenerator;
 import com.noahquagh.quark.ui.DesignPatternDialog;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,7 +60,13 @@ public class CreateDesignPatternAction extends AnAction{
         String targetClientClassName = (targetClientClass != null) ? targetClientClass.getName() : null;
         DesignPatternDialog dialog = new DesignPatternDialog(project,packageName,targetClientClassName);
         if (dialog.showAndGet()) {
-            PatternGenerator.generate(project, dir, dialog.getConfig(),targetClientClass);
+            PatternGenerator.generate(
+                    project,
+                    dir,
+                    dialog.getConfig(),
+                    targetClientClass,
+                    dialog.getSelectedExistingClass()
+            );
         }
 
     }

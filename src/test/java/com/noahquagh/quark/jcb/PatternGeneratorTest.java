@@ -1,5 +1,6 @@
 package com.noahquagh.quark.jcb;
 
+import com.noahquagh.quark.generator.PatternGenerator;
 import com.noahquagh.quark.model.DesignPatternType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.io.TempDir;

@@ -1,6 +1,8 @@
 package com.noahquagh.quark.jcb.psi;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.noahquagh.quark.model.ExistingClassInfo;
 import com.noahquagh.quark.model.ExistingClassInfo.MethodSignature;
 import org.jetbrains.annotations.Nullable;
@@ -62,5 +64,56 @@ public class PsiClassInspector {
         }
 
         return new ExistingClassInfo(qualifiedName, simpleName, packageName, psiClass.isInterface(), methods);
+    }
+
+    /**
+     * Ajoute {@code implements <interfaceQualifiedName>} à une classe existante du projet
+     * (utilisé en mode {@code IMPLEMENT_PARENT} pour Proxy et Decorator).
+     */
+    public static void makeClassImplementInterface(Project project,
+                                                   PsiClass targetClass,
+                                                   String interfaceQualifiedName,
+                                                   List<String> fallbackMethodDeclarations) {
+        if (targetClass == null || targetClass.isInterface()) return;
+
+        JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
+        PsiElementFactory factory = facade.getElementFactory();
+        PsiReferenceList implementsList = targetClass.getImplementsList();
+        if (implementsList == null) return;
+
+        boolean alreadyImplements = false;
+        for (PsiJavaCodeReferenceElement ref : implementsList.getReferenceElements()) {
+            if (interfaceQualifiedName.equals(ref.getQualifiedName())) {
+                alreadyImplements = true;
+                break;
+            }
+        }
+
+        if (!alreadyImplements) {
+            PsiJavaCodeReferenceElement interfaceRef = factory.createReferenceFromText(
+                    interfaceQualifiedName,
+                    targetClass
+            );
+            implementsList.add(interfaceRef);
+        }
+
+        // Si la classe n'avait pas encore les méthodes de l'interface (ex : void request()), on les ajoute
+        for (String decl : fallbackMethodDeclarations) {
+            String methodName = extractMethodName(decl);
+            if (!methodName.isEmpty() && targetClass.findMethodsByName(methodName, false).length == 0) {
+                String methodText = "@Override\npublic " + decl + " {\n    // TODO : Implémenter cette méthode\n}";
+                PsiMethod newMethod = factory.createMethodFromText(methodText, targetClass);
+                targetClass.add(newMethod);
+            }
+        }
+
+        JavaCodeStyleManager.getInstance(project).shortenClassReferences(targetClass);
+    }
+
+    private static String extractMethodName(String declaration) {
+        int parenIdx = declaration.indexOf('(');
+        if (parenIdx <= 0) return "";
+        String[] tokens = declaration.substring(0, parenIdx).trim().split("\\s+");
+        return tokens.length >= 2 ? tokens[tokens.length - 1] : "";
     }
 }
