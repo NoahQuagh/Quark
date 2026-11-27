@@ -28,7 +28,7 @@ public class CreateDesignPatternAction extends AnAction{
     /**
      * Ouvre la boîte de dialogue de configuration et lance la génération des fichiers du patron choisi.
      *
-     * @param e événement déclencheur contenant le contexte du projet et du répertoire ciblé
+     * @param e événement {@code AnActionEvent} déclencheur contenant le contexte du projet et du répertoire ciblé
      */
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -74,7 +74,7 @@ public class CreateDesignPatternAction extends AnAction{
     /**
      * Active et rend visible l'action uniquement lorsqu'un projet est ouvert dans l'IDE.
      *
-     * @param e événement de mise à jour de l'interface
+     * @param e événement {@code AnActionEvent} de mise à jour de l'interface
      */
     @Override
     public void update(@NotNull AnActionEvent e) {

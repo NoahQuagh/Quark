@@ -40,86 +40,48 @@ public class JavaClassBuilder implements CodeBuilder {
         this.className = className;
     }
 
-    /**
-     * Définit le bloc Javadoc placé au-dessus de la déclaration de classe.
-     *
-     * @param javadoc commentaire Javadoc formaté
-     * @return l'instance courante du builder
-     */
     @Override
-    public JavaClassBuilder withJavadoc(String javadoc){
+    public CodeBuilder withJavadoc(String javadoc){
         this.javadoc = javadoc;
         return this;
     }
 
-    /**
-     * Configure la clause d'héritage ou d'implémentation du type.
-     *
-     * @param relationKeyword mot-clé Java ({@code "extends"} ou {@code "implements"})
-     * @param parentClassName nom du type parent
-     * @return l'instance courante du builder
-     */
     @Override
-    public JavaClassBuilder withParent(String relationKeyword, String parentClassName){
+    public CodeBuilder withParent(String relationKeyword, String parentClassName){
         if (parentClassName != null && !parentClassName.isBlank()){
             this.inheritanceClause=" "+relationKeyword+" "+parentClassName;
         }
         return this;
     }
 
-    /**
-     * Ajoute une déclaration d'import sans doublon.
-     *
-     * @param qualifiedClassName nom complet de la classe à importer (ex : {@code "java.util.List"})
-     * @return l'instance courante du builder
-     */
     @Override
-    public JavaClassBuilder addImport(String qualifiedClassName){
+    public CodeBuilder addImport(String qualifiedClassName){
         imports.add(qualifiedClassName);
         return this;
     }
 
-    /**
-     * Ajoute une déclaration d'attribut à la classe.
-     *
-     * @param declaration ligne complète de déclaration de champ (avec point-virgule)
-     * @return l'instance courante du builder
-     */
+
     @Override
-    public JavaClassBuilder addField(String declaration){
+    public CodeBuilder addField(String declaration){
         fields.add(declaration);
         return this;
     }
 
-    /**
-     * Ajoute un constructeur à la classe.
-     *
-     * @param constructorCode bloc complet du constructeur
-     * @return l'instance courante du builder
-     */
+
     @Override
-    public JavaClassBuilder addConstructor(String constructorCode){
+    public CodeBuilder addConstructor(String constructorCode){
         constructors.add(constructorCode);
         return this;
     }
 
-    /**
-     * Ajoute une méthode (signature ou implémentation) au type.
-     *
-     * @param methodCode bloc complet de la méthode
-     * @return l'instance courante du builder
-     */
+
     @Override
-    public JavaClassBuilder addMethod(String methodCode){
+    public CodeBuilder addMethod(String methodCode){
         methods.add(methodCode);
         return this;
     }
 
-    /**
-     * Assemble et retourne le code source Java complet prêt à être écrit.
-     *
-     * @return code source Java formaté
-     */
+
     @Override
     public String build(){
         StringBuilder sb = new StringBuilder();

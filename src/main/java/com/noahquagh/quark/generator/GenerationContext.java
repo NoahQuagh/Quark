@@ -14,11 +14,15 @@ import java.util.Set;
 /**
  * Contexte immuable regroupant l'ensemble des paramètres et résolutions de noms d'une session de génération.
  *
- * @param pattern     patron de conception sélectionné
- * @param baseName    nom de base saisi par l'utilisateur (ex : {@code "Payment"})
- * @param packageName nom qualifié du package cible
- * @param roleClasses correspondance entre chaque identifiant de rôle et les noms de classes générés
- * @param pedagogical {@code true} si les commentaires pédagogiques doivent être générés
+ * @param pattern {@link DesignPatternType}
+ * @param baseName {@link String}
+ * @param packageName {@link String}
+ * @param roleClasses {@code Map<String, List<String>>}
+ * @param enabledOptionalRoleIds {@code Set<String>}
+ * @param roleInstanceCounts {@code Map<String,Integer>}
+ * @param variants {@code List<String>}
+ * @param pedagogical {@code boolean}
+ * @param existingClassInfo {@link ExistingClassInfo}
  *
  * @author noahq
  * @version 1.2
@@ -34,6 +38,7 @@ public record GenerationContext(
         boolean pedagogical,
         @Nullable ExistingClassInfo existingClassInfo
 ) {
+    
     public GenerationContext(DesignPatternType pattern, String baseName, String packageName,
                              Map<String, List<String>> roleClasses, boolean pedagogical) {
         this(pattern, baseName, packageName, roleClasses, Set.of(), Map.of(), List.of(), pedagogical, null);
