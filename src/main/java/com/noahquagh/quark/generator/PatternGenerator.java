@@ -12,10 +12,10 @@ import com.noahquagh.quark.jcb.psi.PsiClientInjector;
 import com.noahquagh.quark.jcb.psi.PsiFileWriter;
 import com.noahquagh.quark.jcb.strategy.DefaultPatternStrategy;
 import com.noahquagh.quark.jcb.strategy.SingletonStrategy;
-import com.noahquagh.quark.model.DesignPatternType;
-import com.noahquagh.quark.model.ExistingClassMode;
-import com.noahquagh.quark.model.PatternGenerationConfig;
-import com.noahquagh.quark.model.PatternRole;
+import com.noahquagh.quark.kcb.KotlinClassBuilder;
+import com.noahquagh.quark.kcb.strategy.KotlinDefaultStrategy;
+import com.noahquagh.quark.kcb.strategy.KotlinSingletonStrategy;
+import com.noahquagh.quark.model.*;
 
 import java.util.*;
 
@@ -102,7 +102,10 @@ public class PatternGenerator {
                 config.enabledOptionalRoleIds(), config.roleInstanceCounts(),
                 config.variants(), config.pedagogical(), config.existingClassInfo()
         );
-        PatternStrategy strategy = CUSTOM_STRATEGIES.getOrDefault(pattern, DEFAULT_STRATEGY);
+        TargetLanguage language = config.language() != null ? config.language() : TargetLanguage.JAVA;
+        PatternStrategy strategy = (language == TargetLanguage.KOTLIN)
+                ? KOTLIN_CUSTOM_STRATEGIES.getOrDefault(pattern, KOTLIN_DEFAULT_STRATEGY)
+                : JAVA_CUSTOM_STRATEGIES.getOrDefault(pattern, JAVA_DEFAULT_STRATEGY);
 
         String skippedReplacedRoleId = (config.existingClassInfo() != null)
                 ? pattern.findExistingTargetRole()
@@ -111,15 +114,19 @@ public class PatternGenerator {
                 .orElse(null)
                 : null;
 
+
+
         Map<String, String> files = new LinkedHashMap<>();
         for (PatternRole role : pattern.getRoles()) {
             if (role.id().equals(skippedReplacedRoleId)) {
                 continue;
             }
             for (String className : ctx.allClassesOf(role.id())) {
-                JavaClassBuilder builder = new JavaClassBuilder(packageName, role.kind(), className);
+                CodeBuilder builder = (language == TargetLanguage.KOTLIN)
+                        ? new KotlinClassBuilder(packageName, role.kind(), className)
+                        : new JavaClassBuilder(packageName, role.kind(), className);
                 strategy.buildRole(role, className, builder, ctx);
-                files.put(className + ".java", builder.build());
+                files.put(className + language.getFileExtension(), builder.build());
             }
         }
         return files;
@@ -200,4 +207,14 @@ public class PatternGenerator {
         }
         return role.resolveName(baseName, index);
     }
+
+    private static final Map<DesignPatternType, PatternStrategy> JAVA_CUSTOM_STRATEGIES = Map.of(
+            DesignPatternType.SINGLETON, new SingletonStrategy()
+    );
+    private static final PatternStrategy JAVA_DEFAULT_STRATEGY = new DefaultPatternStrategy();
+
+    private static final Map<DesignPatternType, PatternStrategy> KOTLIN_CUSTOM_STRATEGIES = Map.of(
+            DesignPatternType.SINGLETON, new KotlinSingletonStrategy()
+    );
+    private static final PatternStrategy KOTLIN_DEFAULT_STRATEGY = new KotlinDefaultStrategy();
 }

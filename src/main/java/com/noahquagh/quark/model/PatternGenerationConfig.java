@@ -21,7 +21,7 @@ import java.util.Set;
  * @param existingClassInfo
  *
  * @author noahq
- * @version 1.2
+ * @version 1.3
  */
 public record PatternGenerationConfig(
         DesignPatternType pattern,
@@ -32,8 +32,23 @@ public record PatternGenerationConfig(
         Map<String, Integer> roleInstanceCounts,
         List<String> variants,
         boolean injectClientIntoActiveClass,
-        @Nullable ExistingClassInfo existingClassInfo
+        @Nullable ExistingClassInfo existingClassInfo,
+        TargetLanguage language
 ) {
+    public PatternGenerationConfig(
+            DesignPatternType pattern,
+            String baseName,
+            boolean createSubPackage,
+            boolean pedagogical,
+            Set<String> enabledOptionalRoleIds,
+            Map<String, Integer> roleInstanceCounts,
+            List<String> variants,
+            boolean injectClientIntoActiveClass,
+            @Nullable ExistingClassInfo existingClassInfo
+    ) {
+        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, injectClientIntoActiveClass, existingClassInfo, TargetLanguage.JAVA);
+    }
+
     public PatternGenerationConfig(
             DesignPatternType pattern,
             String baseName,
@@ -44,7 +59,7 @@ public record PatternGenerationConfig(
             List<String> variants,
             boolean injectClientIntoActiveClass
     ) {
-        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, injectClientIntoActiveClass, null);
+        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, injectClientIntoActiveClass, null, TargetLanguage.JAVA);
     }
 
     public PatternGenerationConfig(
@@ -56,6 +71,6 @@ public record PatternGenerationConfig(
             Map<String, Integer> roleInstanceCounts,
             List<String> variants
     ) {
-        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, false, null);
+        this(pattern, baseName, createSubPackage, pedagogical, enabledOptionalRoleIds, roleInstanceCounts, variants, false, null, TargetLanguage.JAVA);
     }
 }

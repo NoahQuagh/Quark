@@ -9,11 +9,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiNameHelper;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBIntSpinner;
-import com.intellij.ui.components.JBCheckBox;
-import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBList;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.JBTextField;
+import com.intellij.ui.components.*;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import com.noahquagh.quark.jcb.psi.PsiClassInspector;
@@ -34,7 +30,7 @@ import java.util.List;
  * multiplicité des instances) avec prévisualisation en temps réel des fichiers créés.
  *
  * @author noahq
- * @version 1.4
+ * @version 1.5
  */
 public class DesignPatternDialog extends DialogWrapper {
 
@@ -60,7 +56,10 @@ public class DesignPatternDialog extends DialogWrapper {
     private PatternConfigPanel currentConfigPanel;
 
     private final String activeClassName;
-    private JBCheckBox injectClientCheckBox;
+    private final JBCheckBox injectClientCheckBox;
+
+    private final JBRadioButton javaRadio = new JBRadioButton("Java");
+    private final JBRadioButton kotlinRadio = new JBRadioButton("Kotlin");
 
     private static final Map<DesignPatternType, String> REPLACED_ROLE_BY_PATTERN = Map.of(
             DesignPatternType.ADAPTER, "ADAPTEE",
@@ -77,7 +76,7 @@ public class DesignPatternDialog extends DialogWrapper {
 
     private final JPanel existingClassRow = new JPanel(new BorderLayout(6, 0));
     private final JBLabel existingClassLabel = new JBLabel("Classe existante :");
-    private ExistingClassPicker existingClassPicker;
+    private final ExistingClassPicker existingClassPicker;
     private final JButton clearExistingClassButton = new JButton("Effacer");
 
     /**
@@ -100,6 +99,10 @@ public class DesignPatternDialog extends DialogWrapper {
         this(project,targetPackageName,null);
     }
 
+    public DesignPatternDialog(@Nullable Project project, @Nullable String targetPackageName, @Nullable String targetClientClassName) {
+        this(project, targetPackageName, targetClientClassName, TargetLanguage.JAVA);
+    }
+
     /**
      * Initialise la boîte de dialogue avec le nom du package cible sélectionné dans l'arborescence,
      * configure les écouteurs d'événements temps réel et affiche l'aperçu initial.
@@ -108,9 +111,21 @@ public class DesignPatternDialog extends DialogWrapper {
      * @param targetPackageName nom qualifié du package cible
      * @param targetClientClassName nom de la classe client cible
      */
-    public DesignPatternDialog(@Nullable Project project, @Nullable String targetPackageName,@Nullable String targetClientClassName) {
+    public DesignPatternDialog(@Nullable Project project, @Nullable String targetPackageName,@Nullable String targetClientClassName,@NotNull TargetLanguage defaultLanguage) {
         super(project);
 
+        ButtonGroup languageGroup = new ButtonGroup();
+        languageGroup.add(javaRadio);
+        languageGroup.add(kotlinRadio);
+
+        if (defaultLanguage == TargetLanguage.KOTLIN) {
+            kotlinRadio.setSelected(true);
+        } else {
+            javaRadio.setSelected(true);
+        }
+
+        javaRadio.addActionListener(e -> onLanguageChanged());
+        kotlinRadio.addActionListener(e -> onLanguageChanged());
         this.activeClassName = targetClientClassName;
         this.injectClientCheckBox = new JBCheckBox(
                 activeClassName != null ? "Injecter dans " + activeClassName + ".java (au lieu de créer un fichier Client)" : "",
@@ -155,7 +170,7 @@ public class DesignPatternDialog extends DialogWrapper {
         existingClassRow.setVisible(false);
         existingClassLabel.setVisible(false);
 
-        setTitle("Quark : Générer un Design Pattern en Java");
+        setTitle("Quark : Générer un Design Pattern");
         onPatternChanged();
         init();
     }
@@ -286,6 +301,7 @@ public class DesignPatternDialog extends DialogWrapper {
      */
     @SuppressWarnings("unchecked")
     private void refreshPreview() {
+        String ext = getSelectedLanguage().getFileExtension();
         DesignPatternType pattern = getSelectedPattern();
         PsiClass existingClass = (existingClassPicker != null) ? existingClassPicker.getSelectedClass() : null;
         if (pattern == null) return;
@@ -331,19 +347,23 @@ public class DesignPatternDialog extends DialogWrapper {
 
                 for (int i = 1; i <= count; i++) {
                     String resolved = resolveRoleNameWithVariants(role, baseName, i, variants);
-                    previewListModel.addElement(new PreviewItem(prefix + resolved + ".java", role.kind()));
+                    previewListModel.addElement(new PreviewItem(prefix + resolved + ext, role.kind()));
                 }
             } else {
                 String resolved = role.resolveName(baseName, 1);
-                previewListModel.addElement(new PreviewItem(prefix + resolved + ".java", role.kind()));
+                previewListModel.addElement(new PreviewItem(prefix + resolved + ext, role.kind()));
             }
         }
         if (existingClass != null) {
             previewListModel.addElement(new PreviewItem("Réutilise : " + existingClass.getQualifiedName(), ClassKind.CLASS));
         }
         if (isInjectingClient){
-            previewListModel.addElement(new PreviewItem("Injection dans " + activeClassName + ".java", ClassKind.CLASS));
+            previewListModel.addElement(new PreviewItem("Injection dans " + activeClassName + ext, ClassKind.CLASS));
         }
+    }
+
+    public TargetLanguage getSelectedLanguage() {
+        return kotlinRadio.isSelected() ? TargetLanguage.KOTLIN : TargetLanguage.JAVA;
     }
 
     /**
@@ -405,8 +425,12 @@ public class DesignPatternDialog extends DialogWrapper {
     protected @Nullable JComponent createCenterPanel() {
         JBScrollPane previewScroll = new JBScrollPane(previewList);
         previewScroll.setPreferredSize(JBUI.size(440, 130));
+        JPanel languagePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 0));
+        languagePanel.add(javaRadio);
+        languagePanel.add(kotlinRadio);
 
         return FormBuilder.createFormBuilder()
+                .addLabeledComponent("Langage :", languagePanel)
                 .addLabeledComponent("Patron :", patternBox)
                 .addComponent(descriptionLabel)
                 .addLabeledComponent("Nom de base :", nameField)
@@ -488,8 +512,31 @@ public class DesignPatternDialog extends DialogWrapper {
                 instanceCounts,
                 variants,
                 injectClient,
-                existingInfo
+                existingInfo,
+                getSelectedLanguage()
         );
+    }
+
+    private void onLanguageChanged() {
+        boolean isJava = getSelectedLanguage() == TargetLanguage.JAVA;
+        DesignPatternType selected = getSelectedPattern();
+
+        boolean canInject = isJava && (activeClassName != null) && selected != null && selected.findClientRole().isPresent();
+        injectClientCheckBox.setVisible(canInject);
+        if (!isJava) {
+            injectClientCheckBox.setSelected(false);
+        }
+        updateClientRoleCheckboxState();
+
+        boolean supportsExisting = isJava && selected != null && EXISTING_CLASS_PATTERNS.contains(selected);
+        existingClassLabel.setVisible(supportsExisting);
+        existingClassRow.setVisible(supportsExisting);
+        if (!supportsExisting && existingClassPicker != null) {
+            existingClassPicker.clearSelection();
+        }
+
+        refreshPreview();
+        revalidateAndPack();
     }
 
     /**

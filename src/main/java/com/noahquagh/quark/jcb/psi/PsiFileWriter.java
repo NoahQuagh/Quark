@@ -3,6 +3,8 @@ package com.noahquagh.quark.jcb.psi;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.psi.PsiDirectory;
@@ -29,7 +31,7 @@ public class PsiFileWriter {
      * @param commandName   intitulé de l'action affiché dans l'historique d'annulation (Ctrl + Z)
      * @param filesToCreate table associant chaque nom de fichier à son contenu source Java
      */
-    public static void writeFiles(Project project, PsiDirectory directory, String commandName, Map<String,String> filesToCreate){
+    public static void writeFiles(Project project, PsiDirectory directory, String commandName, Map<String, String> filesToCreate) {
         WriteCommandAction.runWriteCommandAction(project, commandName, null, () -> {
             PsiFile firstCreated = null;
 
@@ -44,8 +46,9 @@ public class PsiFileWriter {
                     continue;
                 }
 
+                FileType fileType = FileTypeManager.getInstance().getFileTypeByFileName(fileName);
                 PsiFile psiFile = PsiFileFactory.getInstance(project)
-                        .createFileFromText(fileName, JavaFileType.INSTANCE, code);
+                        .createFileFromText(fileName, fileType, code);
                 CodeStyleManager.getInstance(project).reformat(psiFile);
 
                 PsiFile added = (PsiFile) directory.add(psiFile);

@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.noahquagh.quark.generator.PatternGenerator;
+import com.noahquagh.quark.model.TargetLanguage;
 import com.noahquagh.quark.ui.DesignPatternDialog;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * Accessible via le menu contextuel {@code New} ou {@code Generate} ({@code Alt + Insert}).
  *
  * @author noahq
- * @version 1.3
+ * @version 1.4
  */
 public class CreateDesignPatternAction extends AnAction{
 
@@ -22,7 +23,7 @@ public class CreateDesignPatternAction extends AnAction{
      * Initialise l'action avec son libellé, sa description et son icône native IntelliJ.
      */
     public CreateDesignPatternAction() {
-        super("Java Design Pattern", "Générer la structure Java d'un patron de conception", AllIcons.Nodes.Models);
+        super("Design Pattern", "Générer la structure Java d'un patron de conception", AllIcons.Nodes.Models);
     }
 
     /**
@@ -37,8 +38,12 @@ public class CreateDesignPatternAction extends AnAction{
 
         PsiDirectory dir = null;
         PsiClass targetClientClass = null;
+        TargetLanguage defaultLanguage = TargetLanguage.JAVA;
 
         PsiFile file = e.getData(CommonDataKeys.PSI_FILE);
+        if (file != null && file.getName().endsWith(".kt")) {
+            defaultLanguage = TargetLanguage.KOTLIN;
+        }
 
         if (file instanceof PsiJavaFile javaFile && javaFile.getClasses().length > 0) {
             targetClientClass = javaFile.getClasses()[0];
@@ -58,7 +63,7 @@ public class CreateDesignPatternAction extends AnAction{
         }
 
         String targetClientClassName = (targetClientClass != null) ? targetClientClass.getName() : null;
-        DesignPatternDialog dialog = new DesignPatternDialog(project,packageName,targetClientClassName);
+        DesignPatternDialog dialog = new DesignPatternDialog(project, packageName, targetClientClassName, defaultLanguage);
         if (dialog.showAndGet()) {
             PatternGenerator.generate(
                     project,
@@ -68,7 +73,6 @@ public class CreateDesignPatternAction extends AnAction{
                     dialog.getSelectedExistingClass()
             );
         }
-
     }
 
     /**
