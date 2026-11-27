@@ -1,0 +1,8 @@
+package com.test.pattern;
+
+public class DemoSubsystemA {
+
+    public void operationA() {
+    }
+
+}

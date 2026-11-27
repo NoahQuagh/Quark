@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public class DemoCaretaker {
+
+    private DemoOriginator demoOriginator;
+
+    public void backup() {
+    }
+
+    public void undo() {
+    }
+
+}

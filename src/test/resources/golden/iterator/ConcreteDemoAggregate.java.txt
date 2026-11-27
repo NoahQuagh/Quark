@@ -1,0 +1,10 @@
+package com.test.pattern;
+
+public class ConcreteDemoAggregate implements DemoAggregate {
+
+    @Override
+    public DemoIterator createIterator() {
+        return null;
+    }
+
+}

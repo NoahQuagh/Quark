@@ -1,0 +1,7 @@
+package com.test.pattern;
+
+public class DemoClient {
+
+    private DemoMediator demoMediator;
+
+}

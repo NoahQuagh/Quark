@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public class ConcreteDemoVisitorA implements DemoVisitor {
+
+    @Override
+    public void visit(ConcreteDemoElementA element) {
+    }
+
+    @Override
+    public void visit(ConcreteDemoElementB element) {
+    }
+
+}

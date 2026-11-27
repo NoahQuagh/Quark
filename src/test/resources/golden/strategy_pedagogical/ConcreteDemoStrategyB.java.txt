@@ -1,0 +1,15 @@
+package com.test.pattern;
+
+/**
+ * Pattern Strategy (BEHAVIORAL)
+ * <p>Encapsule une famille d'algorithmes interchangeables.</p>
+ * <p>Rôle : Algorithme concret</p>
+ */
+public class ConcreteDemoStrategyB implements DemoStrategy {
+
+    @Override
+    public void execute() {
+        // TODO : Implémenter cette méthode
+    }
+
+}

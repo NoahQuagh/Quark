@@ -1,0 +1,12 @@
+package com.test.pattern;
+
+public abstract class DemoCreator {
+
+    private DemoProduct demoProduct;
+
+    public abstract DemoProduct createProduct();
+
+    public void someOperation() {
+    }
+
+}

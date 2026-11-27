@@ -1,0 +1,10 @@
+package com.test.pattern;
+
+public abstract class DemoAbstraction {
+
+    private DemoImplementor demoImplementor;
+
+    public void operation() {
+    }
+
+}

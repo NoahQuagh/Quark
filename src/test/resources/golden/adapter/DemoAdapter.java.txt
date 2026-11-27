@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class DemoAdapter implements DemoTarget {
+
+    private DemoAdaptee demoAdaptee;
+
+    @Override
+    public void request() {
+    }
+
+}

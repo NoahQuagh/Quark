@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class ConcreteDemoObserverA implements DemoObserver {
+
+    private ConcreteDemoSubject concreteDemoSubject;
+
+    @Override
+    public void update() {
+    }
+
+}

@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public class DemoContext {
+
+    private DemoStrategy demoStrategy;
+
+    public void setStrategy(DemoStrategy strategy) {
+    }
+
+    public void executeStrategy() {
+    }
+
+}

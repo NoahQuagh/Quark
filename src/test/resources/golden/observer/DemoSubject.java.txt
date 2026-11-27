@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public interface DemoSubject {
+
+    void attach(DemoObserver observer);
+
+    void detach(DemoObserver observer);
+
+    void notifyObservers();
+
+}

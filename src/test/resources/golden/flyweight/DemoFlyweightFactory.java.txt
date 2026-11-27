@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class DemoFlyweightFactory {
+
+    private DemoFlyweight demoFlyweight;
+
+    public DemoFlyweight getFlyweight(String key) {
+        return null;
+    }
+
+}

@@ -1,0 +1,10 @@
+package com.test.pattern;
+
+public abstract class DemoDecorator implements DemoComponent {
+
+    private DemoComponent demoComponent;
+
+    public void operation() {
+    }
+
+}

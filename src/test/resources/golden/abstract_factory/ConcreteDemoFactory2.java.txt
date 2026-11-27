@@ -1,0 +1,15 @@
+package com.test.pattern;
+
+public class ConcreteDemoFactory2 implements DemoFactory {
+
+    @Override
+    public DemoProductA createProductA() {
+        return null;
+    }
+
+    @Override
+    public DemoProductB createProductB() {
+        return null;
+    }
+
+}

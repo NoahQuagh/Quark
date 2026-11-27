@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public class DemoContext {
+
+    private DemoState demoState;
+
+    public void setState(DemoState state) {
+    }
+
+    public void request() {
+    }
+
+}

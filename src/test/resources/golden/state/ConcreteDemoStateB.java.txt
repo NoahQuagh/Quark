@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoStateB implements DemoState {
+
+    @Override
+    public void handle(DemoContext context) {
+    }
+
+}

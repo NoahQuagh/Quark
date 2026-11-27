@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoProductB1 implements DemoProductB {
+
+    @Override
+    public void operation() {
+    }
+
+}

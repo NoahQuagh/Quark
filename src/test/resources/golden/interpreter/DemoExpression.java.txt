@@ -1,0 +1,7 @@
+package com.test.pattern;
+
+public interface DemoExpression {
+
+    Object interpret(DemoContext context);
+
+}

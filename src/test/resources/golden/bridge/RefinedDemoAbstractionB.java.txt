@@ -1,0 +1,5 @@
+package com.test.pattern;
+
+public class RefinedDemoAbstractionB extends DemoAbstraction {
+
+}

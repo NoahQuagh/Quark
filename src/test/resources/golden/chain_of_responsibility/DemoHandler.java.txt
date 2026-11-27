@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public abstract class DemoHandler {
+
+    private DemoHandler demoHandler;
+    private DemoRequest demoRequest;
+
+    public void setNext(DemoHandler next) {
+    }
+
+    public abstract void handle(DemoRequest request);
+
+}

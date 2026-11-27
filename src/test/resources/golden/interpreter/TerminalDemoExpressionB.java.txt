@@ -1,0 +1,10 @@
+package com.test.pattern;
+
+public class TerminalDemoExpressionB implements DemoExpression {
+
+    @Override
+    public Object interpret(DemoContext context) {
+        return null;
+    }
+
+}

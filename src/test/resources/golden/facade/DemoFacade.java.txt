@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class DemoFacade {
+
+    private DemoSubsystemA demoSubsystemA;
+    private DemoSubsystemB demoSubsystemB;
+
+    public void operation() {
+    }
+
+}

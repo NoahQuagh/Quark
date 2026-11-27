@@ -1,0 +1,15 @@
+package com.test.pattern;
+
+public abstract class DemoTemplate {
+
+    public final void templateMethod() {
+    }
+
+    public abstract void step1();
+
+    public abstract void step2();
+
+    public void hook() {
+    }
+
+}

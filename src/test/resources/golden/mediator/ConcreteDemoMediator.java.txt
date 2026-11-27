@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class ConcreteDemoMediator implements DemoMediator {
+
+    private ConcreteDemoColleagueA concreteDemoColleagueA;
+
+    @Override
+    public void notify(DemoColleague sender, String event) {
+    }
+
+}

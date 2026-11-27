@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public interface DemoIterator {
+
+    boolean hasNext();
+
+    Object next();
+
+}

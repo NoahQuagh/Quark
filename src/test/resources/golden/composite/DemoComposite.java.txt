@@ -1,0 +1,23 @@
+package com.test.pattern;
+
+import java.util.List;
+
+public class DemoComposite implements DemoComponent {
+
+    private DemoComponent demoComponent;
+
+    @Override
+    public void operation() {
+    }
+
+    public void add(DemoComponent component) {
+    }
+
+    public void remove(DemoComponent component) {
+    }
+
+    public List<DemoComponent> getChildren() {
+        return null;
+    }
+
+}

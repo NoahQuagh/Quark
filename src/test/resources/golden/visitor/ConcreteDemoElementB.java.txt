@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoElementB implements DemoElement {
+
+    @Override
+    public void accept(DemoVisitor visitor) {
+    }
+
+}

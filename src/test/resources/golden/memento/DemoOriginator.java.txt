@@ -1,0 +1,14 @@
+package com.test.pattern;
+
+public class DemoOriginator {
+
+    private DemoMemento demoMemento;
+
+    public DemoMemento save() {
+        return null;
+    }
+
+    public void restore(DemoMemento memento) {
+    }
+
+}

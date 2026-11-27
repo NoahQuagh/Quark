@@ -1,0 +1,5 @@
+DemoComponent.java
+DemoLeafA.java
+DemoLeafB.java
+DemoComposite.java
+DemoClient.java

@@ -1,0 +1,10 @@
+package com.test.pattern;
+
+public class ConcreteDemoPrototypeA implements DemoPrototype {
+
+    @Override
+    public DemoPrototype copy() {
+        return null;
+    }
+
+}

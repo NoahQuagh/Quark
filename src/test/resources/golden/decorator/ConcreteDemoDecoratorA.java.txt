@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoDecoratorA extends DemoDecorator {
+
+    @Override
+    public void operation() {
+    }
+
+}

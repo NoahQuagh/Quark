@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public interface DemoVisitor {
+
+    void visit(ConcreteDemoElementA element);
+
+    void visit(ConcreteDemoElementB element);
+
+}

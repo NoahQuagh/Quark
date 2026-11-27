@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoStrategyA implements DemoStrategy {
+
+    @Override
+    public void execute() {
+    }
+
+}

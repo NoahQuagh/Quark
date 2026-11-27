@@ -1,0 +1,25 @@
+package com.test.pattern;
+
+/**
+ * Pattern Singleton : garantit une instance unique de DemoSingleton.
+ */
+public class DemoSingleton {
+
+    private static volatile DemoSingleton instance;
+
+private DemoSingleton() {
+        // Constructeur privé
+    }
+
+public static DemoSingleton getInstance() {
+    if (instance == null) {
+        synchronized (DemoSingleton.class) {
+            if (instance == null) {
+                instance = new DemoSingleton();
+            }
+        }
+    }
+    return instance;
+}
+
+}

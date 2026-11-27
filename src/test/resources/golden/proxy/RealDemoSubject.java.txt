@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class RealDemoSubject implements DemoSubject {
+
+    @Override
+    public void request() {
+    }
+
+}

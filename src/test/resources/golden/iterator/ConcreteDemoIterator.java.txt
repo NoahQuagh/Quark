@@ -1,0 +1,17 @@
+package com.test.pattern;
+
+public class ConcreteDemoIterator implements DemoIterator {
+
+    private ConcreteDemoAggregate concreteDemoAggregate;
+
+    @Override
+    public boolean hasNext() {
+        return false;
+    }
+
+    @Override
+    public Object next() {
+        return null;
+    }
+
+}

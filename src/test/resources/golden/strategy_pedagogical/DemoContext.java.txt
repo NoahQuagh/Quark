@@ -1,0 +1,20 @@
+package com.test.pattern;
+
+/**
+ * Pattern Strategy (BEHAVIORAL)
+ * <p>Encapsule une famille d'algorithmes interchangeables.</p>
+ * <p>Rôle : Utilise une stratégie</p>
+ */
+public class DemoContext {
+
+    private DemoStrategy demoStrategy;
+
+    public void setStrategy(DemoStrategy strategy) {
+        // TODO : Implémenter cette méthode
+    }
+
+    public void executeStrategy() {
+        // TODO : Implémenter cette méthode
+    }
+
+}

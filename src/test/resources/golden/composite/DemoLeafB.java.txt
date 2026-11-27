@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class DemoLeafB implements DemoComponent {
+
+    @Override
+    public void operation() {
+    }
+
+}

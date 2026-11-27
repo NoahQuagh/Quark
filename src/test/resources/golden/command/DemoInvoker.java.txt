@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public class DemoInvoker {
+
+    private DemoCommand demoCommand;
+
+    public void setCommand(DemoCommand command) {
+    }
+
+    public void invoke() {
+    }
+
+}

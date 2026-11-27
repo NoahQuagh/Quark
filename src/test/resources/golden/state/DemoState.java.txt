@@ -1,0 +1,7 @@
+package com.test.pattern;
+
+public interface DemoState {
+
+    void handle(DemoContext context);
+
+}

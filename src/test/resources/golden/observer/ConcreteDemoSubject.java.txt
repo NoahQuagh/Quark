@@ -1,0 +1,19 @@
+package com.test.pattern;
+
+public class ConcreteDemoSubject implements DemoSubject {
+
+    private DemoObserver demoObserver;
+
+    @Override
+    public void attach(DemoObserver observer) {
+    }
+
+    @Override
+    public void detach(DemoObserver observer) {
+    }
+
+    @Override
+    public void notifyObservers() {
+    }
+
+}

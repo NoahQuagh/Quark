@@ -1,0 +1,10 @@
+package com.test.pattern;
+
+public class DemoDirector {
+
+    private DemoBuilder demoBuilder;
+
+    public void construct() {
+    }
+
+}

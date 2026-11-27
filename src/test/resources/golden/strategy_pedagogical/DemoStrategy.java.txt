@@ -1,0 +1,12 @@
+package com.test.pattern;
+
+/**
+ * Pattern Strategy (BEHAVIORAL)
+ * <p>Encapsule une famille d'algorithmes interchangeables.</p>
+ * <p>Rôle : Interface commune des algorithmes</p>
+ */
+public interface DemoStrategy {
+
+    void execute();
+
+}

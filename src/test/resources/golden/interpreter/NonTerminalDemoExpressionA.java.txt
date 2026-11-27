@@ -1,0 +1,12 @@
+package com.test.pattern;
+
+public class NonTerminalDemoExpressionA implements DemoExpression {
+
+    private DemoExpression demoExpression;
+
+    @Override
+    public Object interpret(DemoContext context) {
+        return null;
+    }
+
+}

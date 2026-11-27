@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoFlyweight implements DemoFlyweight {
+
+    @Override
+    public void operation(String extrinsicState) {
+    }
+
+}

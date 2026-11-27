@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class DemoProxy implements DemoSubject {
+
+    private DemoSubject demoSubject;
+
+    @Override
+    public void request() {
+    }
+
+}

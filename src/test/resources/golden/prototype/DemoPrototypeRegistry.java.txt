@@ -1,0 +1,14 @@
+package com.test.pattern;
+
+public class DemoPrototypeRegistry {
+
+    private DemoPrototype demoPrototype;
+
+    public void register(String key, DemoPrototype prototype) {
+    }
+
+    public DemoPrototype get(String key) {
+        return null;
+    }
+
+}

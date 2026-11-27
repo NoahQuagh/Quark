@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public interface DemoFactory {
+
+    DemoProductA createProductA();
+
+    DemoProductB createProductB();
+
+}

@@ -1,0 +1,9 @@
+package com.test.pattern;
+
+public class ConcreteDemoHandlerA extends DemoHandler {
+
+    @Override
+    public void handle(DemoRequest request) {
+    }
+
+}

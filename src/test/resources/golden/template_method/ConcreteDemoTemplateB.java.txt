@@ -1,0 +1,13 @@
+package com.test.pattern;
+
+public class ConcreteDemoTemplateB extends DemoTemplate {
+
+    @Override
+    public void step1() {
+    }
+
+    @Override
+    public void step2() {
+    }
+
+}

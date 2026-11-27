@@ -1,0 +1,11 @@
+package com.test.pattern;
+
+public class ConcreteDemoCommandB implements DemoCommand {
+
+    private DemoReceiver demoReceiver;
+
+    @Override
+    public void execute() {
+    }
+
+}

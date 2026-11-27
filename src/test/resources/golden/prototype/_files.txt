@@ -1,0 +1,5 @@
+DemoPrototype.java
+ConcreteDemoPrototypeA.java
+ConcreteDemoPrototypeB.java
+DemoPrototypeRegistry.java
+DemoClient.java
